@@ -1,6 +1,7 @@
 package com.vexo.app.ui
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -9,7 +10,6 @@ import android.view.animation.AlphaAnimation
 import android.view.animation.AnimationSet
 import android.view.animation.ScaleAnimation
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.auth.FirebaseAuth
 import com.vexo.app.databinding.ActivitySplashBinding
 
 @SuppressLint("CustomSplashScreen")
@@ -25,12 +25,11 @@ class SplashActivity : AppCompatActivity() {
         startAnimations()
 
         Handler(Looper.getMainLooper()).postDelayed({
-            checkAuthAndNavigate()
+            checkLoginAndNavigate()
         }, 3000)
     }
 
     private fun startAnimations() {
-        // Logo animation
         val scale = ScaleAnimation(
             0.3f, 1f, 0.3f, 1f,
             ScaleAnimation.RELATIVE_TO_SELF, 0.5f,
@@ -47,7 +46,6 @@ class SplashActivity : AppCompatActivity() {
         }
         binding.ivLogo.startAnimation(logoAnim)
 
-        // Text animation
         val textFade = AlphaAnimation(0f, 1f).apply {
             duration = 800
             startOffset = 700
@@ -57,9 +55,10 @@ class SplashActivity : AppCompatActivity() {
         binding.tvMadeBy.startAnimation(textFade)
     }
 
-    private fun checkAuthAndNavigate() {
-        val user = FirebaseAuth.getInstance().currentUser
-        if (user != null) {
+    private fun checkLoginAndNavigate() {
+        val prefs = getSharedPreferences("vexo_prefs", Context.MODE_PRIVATE)
+        val isLoggedIn = prefs.getBoolean("is_logged_in", false)
+        if (isLoggedIn) {
             startActivity(Intent(this, MainActivity::class.java))
         } else {
             startActivity(Intent(this, AuthActivity::class.java))

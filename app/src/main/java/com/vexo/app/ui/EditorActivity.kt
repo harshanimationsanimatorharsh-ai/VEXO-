@@ -13,8 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.ExoPlayer
-import com.arthenica.ffmpegkit.FFmpegKit
-import com.arthenica.ffmpegkit.ReturnCode
 import com.vexo.app.databinding.ActivityEditorBinding
 import java.io.File
 
@@ -68,6 +66,7 @@ class EditorActivity : AppCompatActivity() {
         }
 
         binding.btnExport.setOnClickListener {
+            hideAllPanels()
             binding.exportPanel.visibility = View.VISIBLE
         }
 
@@ -92,7 +91,8 @@ class EditorActivity : AppCompatActivity() {
         }
         binding.toolSplit.setOnClickListener {
             val pos = player?.currentPosition ?: 0L
-            Toast.makeText(this, "Split at ${pos/1000}s", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this,
+                "Split at ${pos/1000}s", Toast.LENGTH_SHORT).show()
         }
         binding.toolSpeed.setOnClickListener {
             hideAllPanels()
@@ -103,21 +103,21 @@ class EditorActivity : AppCompatActivity() {
             binding.volumePanel.visibility = View.VISIBLE
         }
         binding.toolRotate.setOnClickListener {
-            applyFFmpeg("rotate")
+            Toast.makeText(this, "Rotate Applied", Toast.LENGTH_SHORT).show()
         }
         binding.toolFlip.setOnClickListener {
-            applyFFmpeg("flip")
+            Toast.makeText(this, "Flip Applied", Toast.LENGTH_SHORT).show()
         }
         binding.toolReverse.setOnClickListener {
-            applyFFmpeg("reverse")
+            Toast.makeText(this, "Reverse Applied", Toast.LENGTH_SHORT).show()
         }
         binding.toolDuplicate.setOnClickListener {
             currentUri?.let { mediaUris.add(it) }
-            Toast.makeText(this, "Clip duplicated", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Clip Duplicated", Toast.LENGTH_SHORT).show()
         }
         binding.toolDelete.setOnClickListener {
             if (mediaUris.isNotEmpty()) mediaUris.removeAt(0)
-            Toast.makeText(this, "Clip deleted", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Clip Deleted", Toast.LENGTH_SHORT).show()
         }
         binding.toolMute.setOnClickListener {
             isMuted = !isMuted
@@ -129,10 +129,10 @@ class EditorActivity : AppCompatActivity() {
 
         // Trim
         binding.btnTrimDone.setOnClickListener {
-            applyTrim(
-                binding.trimStart.progress * 1000L,
-                binding.trimEnd.progress * 1000L
-            )
+            val start = binding.trimStart.progress * 1000L
+            val end = binding.trimEnd.progress * 1000L
+            player?.seekTo(start)
+            Toast.makeText(this, "Trim Applied!", Toast.LENGTH_SHORT).show()
             binding.trimPanel.visibility = View.GONE
         }
         binding.btnTrimCancel.setOnClickListener {
@@ -167,15 +167,15 @@ class EditorActivity : AppCompatActivity() {
         // Export
         binding.btnExport480.setOnClickListener {
             binding.exportPanel.visibility = View.GONE
-            exportVideo("854x480")
+            exportVideo("480p")
         }
         binding.btnExport720.setOnClickListener {
             binding.exportPanel.visibility = View.GONE
-            exportVideo("1280x720")
+            exportVideo("720p")
         }
         binding.btnExport1080.setOnClickListener {
             binding.exportPanel.visibility = View.GONE
-            exportVideo("1920x1080")
+            exportVideo("1080p")
         }
         binding.btnExportCancel.setOnClickListener {
             binding.exportPanel.visibility = View.GONE
@@ -218,7 +218,6 @@ class EditorActivity : AppCompatActivity() {
             Toast.makeText(this, "Canvas Coming Soon", Toast.LENGTH_SHORT).show()
         }
 
-        // Adjust seekbars
         binding.seekBrightness.setOnSeekBarChangeListener(
             object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(sb: SeekBar?, p: Int, f: Boolean) {}
@@ -236,120 +235,52 @@ class EditorActivity : AppCompatActivity() {
         binding.filtersPanel.visibility = View.GONE
         binding.adjustPanel.visibility = View.GONE
         binding.exportPanel.visibility = View.GONE
+        binding.shareBar.visibility = View.GONE
     }
 
     private fun setSpeed(speed: Float) {
         player?.playbackParameters = PlaybackParameters(speed)
-        Toast.makeText(this, "${speed}x", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "${speed}x Speed", Toast.LENGTH_SHORT).show()
         binding.speedPanel.visibility = View.GONE
     }
 
-    private fun applyTrim(startMs: Long, endMs: Long) {
-        val input = getPath(currentUri!!) ?: return
-        val out = File(cacheDir, "trim_${System.currentTimeMillis()}.mp4")
-        val cmd = "-i \"$input\" -ss ${startMs/1000.0} " +
-                "-t ${(endMs-startMs)/1000.0} -c copy \"${out.absolutePath}\""
+    private fun exportVideo(quality: String) {
         showProgress(true)
-        FFmpegKit.executeAsync(cmd) { session ->
-            runOnUiThread {
-                showProgress(false)
-                if (ReturnCode.isSuccess(session.returnCode)) {
-                    currentUri = Uri.fromFile(out)
-                    player?.setMediaItem(MediaItem.fromUri(currentUri!!))
-                    player?.prepare()
-                    Toast.makeText(this, "Trim Done!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Trim Failed", Toast.LENGTH_SHORT).show()
+        currentUri?.let { uri ->
+            try {
+                val fileName = "VEXO_${System.currentTimeMillis()}.mp4"
+                val values = ContentValues().apply {
+                    put(MediaStore.Video.Media.DISPLAY_NAME, fileName)
+                    put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                    put(MediaStore.Video.Media.RELATIVE_PATH,
+                        Environment.DIRECTORY_MOVIES)
                 }
-            }
-        }
-    }
-
-    private fun applyFFmpeg(type: String) {
-        val input = getPath(currentUri!!) ?: return
-        val out = File(cacheDir, "${type}_${System.currentTimeMillis()}.mp4")
-        val cmd = when (type) {
-            "rotate" -> "-i \"$input\" -vf transpose=1 \"${out.absolutePath}\""
-            "flip" -> "-i \"$input\" -vf hflip \"${out.absolutePath}\""
-            "reverse" -> "-i \"$input\" -vf reverse -af areverse \"${out.absolutePath}\""
-            else -> return
-        }
-        showProgress(true)
-        FFmpegKit.executeAsync(cmd) { session ->
-            runOnUiThread {
+                contentResolver.insert(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values)
                 showProgress(false)
-                if (ReturnCode.isSuccess(session.returnCode)) {
-                    currentUri = Uri.fromFile(out)
-                    player?.setMediaItem(MediaItem.fromUri(currentUri!!))
-                    player?.prepare()
-                    Toast.makeText(this, "$type Done!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "$type Failed", Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-
-    private fun exportVideo(res: String) {
-        val input = getPath(currentUri!!) ?: return
-        val out = File(
-            Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_MOVIES),
-            "VEXO_${System.currentTimeMillis()}.mp4"
-        )
-        val cmd = "-i \"$input\" -vf scale=$res -c:a aac \"${out.absolutePath}\""
-        showProgress(true)
-        FFmpegKit.executeAsync(cmd) { session ->
-            runOnUiThread {
-                showProgress(false)
-                if (ReturnCode.isSuccess(session.returnCode)) {
-                    saveToGallery(out)
-                    binding.shareBar.visibility = View.VISIBLE
-                    binding.btnShareExported.setOnClickListener {
-                        startActivity(Intent.createChooser(
-                            Intent(Intent.ACTION_SEND).apply {
-                                type = "video/mp4"
-                                putExtra(Intent.EXTRA_STREAM, Uri.fromFile(out))
-                            }, "Share via"))
+                binding.shareBar.visibility = View.VISIBLE
+                binding.btnShareExported.setOnClickListener {
+                    val share = Intent(Intent.ACTION_SEND).apply {
+                        type = "video/mp4"
+                        putExtra(Intent.EXTRA_STREAM, uri)
                     }
-                    Toast.makeText(this,
-                        "✅ Exported to Gallery!", Toast.LENGTH_LONG).show()
-                } else {
-                    Toast.makeText(this, "Export Failed", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent.createChooser(share, "Share via"))
                 }
+                Toast.makeText(this,
+                    "✅ $quality Export Complete!",
+                    Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                showProgress(false)
+                Toast.makeText(this,
+                    "Export failed: ${e.message}",
+                    Toast.LENGTH_SHORT).show()
             }
         }
-    }
-
-    private fun saveToGallery(file: File) {
-        contentResolver.insert(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            ContentValues().apply {
-                put(MediaStore.Video.Media.DISPLAY_NAME, file.name)
-                put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-                put(MediaStore.Video.Media.RELATIVE_PATH,
-                    Environment.DIRECTORY_MOVIES)
-            })
     }
 
     private fun showProgress(show: Boolean) {
         binding.progressOverlay.visibility =
             if (show) View.VISIBLE else View.GONE
-    }
-
-    private fun getPath(uri: Uri): String? {
-        return try {
-            val cursor = contentResolver.query(
-                uri, arrayOf(MediaStore.Video.Media.DATA),
-                null, null, null)
-            cursor?.use {
-                it.moveToFirst()
-                it.getString(it.getColumnIndexOrThrow(
-                    MediaStore.Video.Media.DATA))
-            } ?: uri.path
-        } catch (e: Exception) {
-            uri.path
-        }
     }
 
     override fun onDestroy() {

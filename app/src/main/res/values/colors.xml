@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="vexo_purple">#6C63FF</color>
+    <color name="vexo_purple_dark">#4B44CC</color>
+    <color name="vexo_purple_light">#9D97FF</color>
+    <color name="vexo_green">#43E97B</color>
+    <color name="vexo_pink">#FF6584</color>
+    <color name="vexo_gold">#FFD700</color>
+
+    <color name="bg_primary">#0A0A0F</color>
+    <color name="bg_secondary">#12121A</color>
+    <color name="bg_card">#1A1A26</color>
+    <color name="bg_surface">#1E1E2E</color>
+    <color name="bg_elevated">#252535</color>
+    <color name="bg_editor">#080810</color>
+    <color name="bg_timeline">#0E0E1C</color>
+
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_secondary">#B0B0C8</color>
+    <color name="text_tertiary">#6B6B8A</color>
+    <color name="text_hint">#4A4A6A</color>
+
+    <color name="clip_video">#6C63FF</color>
+    <color name="clip_audio">#43E97B</color>
+    <color name="clip_text">#FF6584</color>
+
+    <color name="nav_bg">#0E0E1C</color>
+    <color name="nav_selected">#6C63FF</color>
+    <color name="nav_unselected">#6B6B8A</color>
+
+    <color name="success">#43E97B</color>
+    <color name="error">#FF5252</color>
+    <color name="warning">#FFB300</color>
+
+    <color name="divider">#1E1E2E</color>
+    <color name="border">#252535</color>
+    <color name="transparent">#00000000</color>
+    <color name="black_70">#B3000000</color>
+    <color name="white_20">#33FFFFFF</color>
+</resources>

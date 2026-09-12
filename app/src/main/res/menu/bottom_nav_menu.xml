@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/nav_edit"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="Edit"/>
+
+    <item
+        android:id="@+id/nav_discover"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:title="Discover"/>
+
+    <item
+        android:id="@+id/nav_ailab"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="AI Lab"/>
+
+    <item
+        android:id="@+id/nav_projects"
+        android:icon="@android:drawable/ic_menu_gallery"
+        android:title="Projects"/>
+
+    <item
+        android:id="@+id/nav_me"
+        android:icon="@android:drawable/ic_menu_myplaces"
+        android:title="Me"/>
+
+</menu>

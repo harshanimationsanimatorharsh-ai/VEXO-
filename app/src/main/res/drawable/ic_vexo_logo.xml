@@ -5,23 +5,103 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
+    <!-- Dark Background -->
     <path
-        android:pathData="M54,0 C83.823,0 108,24.177 108,54
-        C108,83.823 83.823,108 54,108
-        C24.177,108 0,83.823 0,54
-        C0,24.177 24.177,0 54,0 Z"
-        android:fillColor="#6C63FF"/>
+        android:pathData="M10,0 L98,0 Q108,0 108,10 L108,98 Q108,108 98,108 L10,108 Q0,108 0,98 L0,10 Q0,0 10,0 Z"
+        android:fillColor="#0A0A0F"/>
 
+    <!-- Neon Outline Glow Outer -->
     <path
-        android:pathData="M20,30 L38,30 L54,65 L70,30 L88,30 L54,82 Z"
+        android:pathData="M10,2 L98,2 Q106,2 106,10 L106,98 Q106,106 98,106 L10,106 Q2,106 2,98 L2,10 Q2,2 10,2 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#7B2FFF"
+        android:strokeWidth="1.2"
+        android:strokeAlpha="0.5"/>
+
+    <!-- Neon Outline Main -->
+    <path
+        android:pathData="M12,3.5 L96,3.5 Q104.5,3.5 104.5,12 L104.5,96 Q104.5,104.5 96,104.5 L12,104.5 Q3.5,104.5 3.5,96 L3.5,12 Q3.5,3.5 12,3.5 Z"
+        android:fillColor="#00000000"
+        android:strokeColor="#A855F7"
+        android:strokeWidth="0.8"/>
+
+    <!-- V Shape Left Arm — Magenta to Purple -->
+    <path
+        android:pathData="M14,18 L30,18 L54,62 L54,72 L46,72 Z"
+        android:fillColor="#C026D3"/>
+
+    <!-- V Shape Right Arm — Blue to Cyan -->
+    <path
+        android:pathData="M94,18 L78,18 L54,62 L54,72 L62,72 Z"
+        android:fillColor="#2563EB"/>
+
+    <!-- V Center Overlap — Purple Gradient -->
+    <path
+        android:pathData="M54,52 L54,72 L58,65 L58,52 Z"
+        android:fillColor="#7C3AED"/>
+
+    <!-- V Left Ribbon Fold Highlight -->
+    <path
+        android:pathData="M14,18 L24,18 L50,65 L46,72 Z"
+        android:fillColor="#E040FB"
+        android:fillAlpha="0.7"/>
+
+    <!-- V Right Ribbon Fold Highlight -->
+    <path
+        android:pathData="M94,18 L84,18 L58,65 L62,72 Z"
+        android:fillColor="#38BDF8"
+        android:fillAlpha="0.6"/>
+
+    <!-- Play Button Triangle — Upper Right of V -->
+    <path
+        android:pathData="M72,18 L72,32 L84,25 Z"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.9"/>
+
+    <!-- Glow Line Under V -->
+    <path
+        android:pathData="M38,75 L70,75"
+        android:fillColor="#00000000"
+        android:strokeColor="#A855F7"
+        android:strokeWidth="0.8"
+        android:strokeAlpha="0.6"/>
+
+    <!-- VEXO Text — V Letter -->
+    <path
+        android:pathData="M16,82 L20,82 L26,94 L32,82 L36,82 L28,98 L24,98 Z"
         android:fillColor="#FFFFFF"/>
 
+    <!-- VEXO Text — E Letter -->
     <path
-        android:pathData="M43,50 L54,62 L65,50"
+        android:pathData="M40,82 L52,82 L52,85 L43,85 L43,88 L51,88 L51,91 L43,91 L43,95 L52,95 L52,98 L40,98 Z"
+        android:fillColor="#FFFFFF"/>
+
+    <!-- VEXO Text — X Letter Left -->
+    <path
+        android:pathData="M56,82 L60,82 L65,89 L60,98 L56,98 L61,90 Z"
+        android:fillColor="#A855F7"/>
+
+    <!-- VEXO Text — X Letter Right -->
+    <path
+        android:pathData="M74,82 L70,82 L65,89 L70,98 L74,98 L69,90 Z"
+        android:fillColor="#38BDF8"/>
+
+    <!-- VEXO Text — X Center Cross -->
+    <path
+        android:pathData="M58,82 L62,82 L68,98 L64,98 Z"
+        android:fillColor="#7C3AED"/>
+
+    <!-- VEXO Text — O Letter -->
+    <path
+        android:pathData="M84,82 Q92,82 92,90 Q92,98 84,98 Q76,98 76,90 Q76,82 84,82 Z"
         android:fillColor="#00000000"
-        android:strokeColor="#43E97B"
-        android:strokeWidth="5"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"/>
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"/>
+
+    <!-- Shine Effect Top Left -->
+    <path
+        android:pathData="M8,8 L20,8 L8,20 Z"
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.04"/>
 
 </vector>

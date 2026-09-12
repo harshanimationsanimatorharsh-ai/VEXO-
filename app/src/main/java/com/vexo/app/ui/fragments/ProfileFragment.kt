@@ -1,5 +1,6 @@
 package com.vexo.app.ui.fragments
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -8,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.google.firebase.auth.FirebaseAuth
 import com.vexo.app.databinding.FragmentProfileBinding
 import com.vexo.app.ui.AuthActivity
 
@@ -16,7 +16,6 @@ class ProfileFragment : Fragment() {
 
     private var _binding: FragmentProfileBinding? = null
     private val binding get() = _binding!!
-    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,10 +29,11 @@ class ProfileFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val user = auth.currentUser
-        binding.tvName.text = user?.displayName ?: "VEXO User"
-        binding.tvEmail.text = user?.email
-            ?: user?.phoneNumber ?: "vexo@user.com"
+        val prefs = requireContext()
+            .getSharedPreferences("vexo_prefs", Context.MODE_PRIVATE)
+
+        binding.tvName.text = prefs.getString("user_name", "VEXO User")
+        binding.tvEmail.text = prefs.getString("user_email", "user@vexo.app")
 
         binding.btnEmail.setOnClickListener {
             Intent(Intent.ACTION_SENDTO).apply {
@@ -54,23 +54,21 @@ class ProfileFragment : Fragment() {
         }
 
         binding.btnSignOut.setOnClickListener {
-            auth.signOut()
+            prefs.edit()
+                .putBoolean("is_logged_in", false)
+                .putString("user_name", "")
+                .putString("user_email", "")
+                .apply()
             startActivity(Intent(requireContext(), AuthActivity::class.java))
             requireActivity().finishAffinity()
         }
 
         binding.btnDeleteAccount.setOnClickListener {
-            user?.delete()
-                ?.addOnSuccessListener {
-                    Toast.makeText(requireContext(),
-                        "Account deleted", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(requireContext(), AuthActivity::class.java))
-                    requireActivity().finishAffinity()
-                }
-                ?.addOnFailureListener {
-                    Toast.makeText(requireContext(),
-                        it.message, Toast.LENGTH_SHORT).show()
-                }
+            prefs.edit().clear().apply()
+            Toast.makeText(requireContext(),
+                "Account deleted", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), AuthActivity::class.java))
+            requireActivity().finishAffinity()
         }
     }
 

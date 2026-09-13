@@ -1,35 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="120dp"
     android:layout_margin="1dp">
 
     <ImageView
-        android:id="@+id/ivThumbnail"
+        android:id="@+id/ivMedia"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg_card"
-        android:scaleType="centerCrop"/>
+        android:scaleType="centerCrop"
+        android:background="#222222" />
 
-    <View
-        android:id="@+id/viewSelected"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:alpha="0"
-        android:background="@color/black_70"/>
-
-    <TextView
-        android:id="@+id/tvOrder"
+    <ImageView
+        android:id="@+id/ivCheck"
         android:layout_width="28dp"
         android:layout_height="28dp"
+        android:src="@android:drawable/checkbox_on_background"
         android:layout_gravity="top|end"
         android:layout_margin="6dp"
-        android:alpha="0"
-        android:background="@drawable/bg_button"
-        android:gravity="center"
-        android:textColor="@color/text_primary"
-        android:textSize="13sp"
-        android:textStyle="bold"/>
+        android:visibility="gone" />
 
 </FrameLayout>

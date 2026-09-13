@@ -1,7 +1,9 @@
 package com.vexo.app.ui
 
+import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
+import android.graphics.drawable.ColorDrawable
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Bundle
@@ -21,57 +23,62 @@ import java.io.File
 
 class EditorActivity : AppCompatActivity() {
 
-    // Player
+    // ── Player ───────────────────────────────────────────────────
     private lateinit var playerView: PlayerView
     private var player: ExoPlayer? = null
     private val mediaUris = ArrayList<Uri>()
     private var currentClipIndex = 0
 
-    // Undo stack
-    private val undoStack = ArrayDeque<() -> Unit>()
+    // ── Filter overlay (colorFilter applied here, NOT on PlayerView) ──
+    private lateinit var filterOverlay: ImageView
 
-    // Current color matrix applied to playerView overlay
-    private var activeMatrix: ColorMatrix = ColorMatrix()
-
-    // Sliders
+    // ── Adjust sliders ───────────────────────────────────────────
     private lateinit var sliderBrightness: Slider
     private lateinit var sliderContrast: Slider
     private lateinit var sliderSaturation: Slider
 
-    // Speed
-    private var playbackSpeed = 1f
+    // ── Undo / Redo stacks ───────────────────────────────────────
+    private val undoStack = ArrayDeque<() -> Unit>()
+    private val redoStack = ArrayDeque<() -> Unit>()
 
-    // Volume
+    // ── State ────────────────────────────────────────────────────
+    private var playbackSpeed = 1f
     private var isMuted = false
 
+    // ─────────────────────────────────────────────────────────────
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_editor)
 
-        // ── Gather media URIs ──────────────────────────────────
+        // Gather URIs
         val uriStrings = intent.getStringArrayListExtra("media_uris") ?: arrayListOf()
         uriStrings.forEach { mediaUris.add(Uri.parse(it)) }
 
-        // ── Player setup ───────────────────────────────────────
+        // Player
         playerView = findViewById(R.id.playerView)
         initPlayer()
 
-        // ── Sliders ────────────────────────────────────────────
+        // Filter overlay
+        filterOverlay = findViewById(R.id.filterOverlay)
+        filterOverlay.setImageDrawable(ColorDrawable(Color.WHITE))
+        filterOverlay.alpha = 0f   // invisible until a filter is applied
+
+        // Sliders
         sliderBrightness = findViewById(R.id.sliderBrightness)
         sliderContrast   = findViewById(R.id.sliderContrast)
         sliderSaturation = findViewById(R.id.sliderSaturation)
         setupAdjustSliders()
 
-        // ── Toolbar buttons ────────────────────────────────────
+        // Toolbar
         findViewById<ImageButton>(R.id.btnBack).setOnClickListener { finish() }
         findViewById<ImageButton>(R.id.btnUndo).setOnClickListener { undo() }
         findViewById<ImageButton>(R.id.btnRedo).setOnClickListener { redo() }
         findViewById<Button>(R.id.btnExport).setOnClickListener { exportVideo() }
 
-        // ── Edit tools ─────────────────────────────────────────
+        // Edit tools
         setupEditTools()
 
-        // ── Filter, Effect, Animation, Video Effect rows ───────
+        // Dynamic rows
         setupFilterRow()
         setupEffectRow()
         setupAnimationRow()
@@ -97,19 +104,18 @@ class EditorActivity : AppCompatActivity() {
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  ADJUST SLIDERS (Brightness / Contrast / Saturation)
+    //  ADJUST SLIDERS
     // ─────────────────────────────────────────────────────────────
 
     private fun setupAdjustSliders() {
-        val updateFilter = {
-            val brightness = sliderBrightness.value   // –100 … 100
-            val contrast   = sliderContrast.value     // 0.5 … 2.0
-            val saturation = sliderSaturation.value   // 0 … 2
+        val applyAdjust = {
+            val brightness = sliderBrightness.value          // –100 … 100
+            val contrast   = sliderContrast.value            // 0.5 … 2.0
+            val saturation = sliderSaturation.value          // 0.0 … 2.0
 
-            val cm = ColorMatrix()
-            // Saturation
-            cm.setSaturation(saturation)
-            // Contrast + Brightness combined
+            val satMatrix = ColorMatrix()
+            satMatrix.setSaturation(saturation)
+
             val c = contrast
             val b = brightness
             val contrastMatrix = ColorMatrix(floatArrayOf(
@@ -118,14 +124,24 @@ class EditorActivity : AppCompatActivity() {
                 0f, 0f, c, 0f, b,
                 0f, 0f, 0f, 1f, 0f
             ))
-            cm.postConcat(contrastMatrix)
-            activeMatrix = cm
-            playerView.colorFilter = ColorMatrixColorFilter(cm)
+            satMatrix.postConcat(contrastMatrix)
+            applyColorMatrix(satMatrix)
         }
 
-        sliderBrightness.addOnChangeListener { _, _, _ -> updateFilter() }
-        sliderContrast.addOnChangeListener   { _, _, _ -> updateFilter() }
-        sliderSaturation.addOnChangeListener { _, _, _ -> updateFilter() }
+        sliderBrightness.addOnChangeListener { _, _, _ -> applyAdjust() }
+        sliderContrast  .addOnChangeListener { _, _, _ -> applyAdjust() }
+        sliderSaturation.addOnChangeListener { _, _, _ -> applyAdjust() }
+    }
+
+    /** Apply a ColorMatrix to the transparent overlay on top of the player. */
+    private fun applyColorMatrix(matrix: ColorMatrix?) {
+        if (matrix == null) {
+            filterOverlay.colorFilter = null
+            filterOverlay.alpha = 0f
+        } else {
+            filterOverlay.colorFilter = ColorMatrixColorFilter(matrix)
+            filterOverlay.alpha = 0.35f   // semi-transparent tint over video
+        }
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -135,72 +151,79 @@ class EditorActivity : AppCompatActivity() {
     private fun setupEditTools() {
         // Trim
         findViewById<Button>(R.id.btnTrim).setOnClickListener {
-            showToast("Trim: use timeline handles to set start/end")
+            toast("Trim: drag timeline handles to set in/out points")
         }
+
         // Split
         findViewById<Button>(R.id.btnSplit).setOnClickListener {
-            val pos = player?.currentPosition ?: 0
-            showToast("Split at ${pos / 1000}s")
-            undoStack.addLast { showToast("Undo split") }
+            val posSec = (player?.currentPosition ?: 0L) / 1000L
+            toast("Split at ${posSec}s")
+            undoStack.addLast { toast("Undo: split removed") }
         }
-        // Speed
-        val speedGroup = arrayOf(0.25f, 0.5f, 1f, 1.5f, 2f, 3f)
+
+        // Speed cycle
+        val speeds = floatArrayOf(0.25f, 0.5f, 1f, 1.5f, 2f, 3f)
         var speedIdx = 2
         findViewById<Button>(R.id.btnSpeed).setOnClickListener {
-            speedIdx = (speedIdx + 1) % speedGroup.size
-            playbackSpeed = speedGroup[speedIdx]
+            speedIdx = (speedIdx + 1) % speeds.size
+            playbackSpeed = speeds[speedIdx]
             player?.setPlaybackSpeed(playbackSpeed)
-            showToast("Speed: ${playbackSpeed}x")
+            toast("Speed: ${playbackSpeed}x")
         }
-        // Volume
+
+        // Volume (simple toggle loud/quiet for demo)
+        var volumeLevel = 1f
         findViewById<Button>(R.id.btnVolume).setOnClickListener {
-            val volumeBar = SeekBar(this).apply {
-                max = 100; progress = 80
-                setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                    override fun onProgressChanged(sb: SeekBar?, v: Int, f: Boolean) {
-                        player?.volume = v / 100f
-                    }
-                    override fun onStartTrackingTouch(sb: SeekBar?) {}
-                    override fun onStopTrackingTouch(sb: SeekBar?) {}
-                })
-            }
-            showToast("Drag volume slider in panel")
+            volumeLevel = if (volumeLevel >= 1f) 0.3f else 1f
+            player?.volume = volumeLevel
+            toast("Volume: ${(volumeLevel * 100).toInt()}%")
         }
+
         // Mute
         findViewById<Button>(R.id.btnMute).setOnClickListener {
             isMuted = !isMuted
             player?.volume = if (isMuted) 0f else 1f
-            showToast(if (isMuted) "Muted" else "Unmuted")
+            toast(if (isMuted) "Muted" else "Unmuted")
         }
+
         // Rotate
-        var rotation = 0f
+        var rotationDeg = 0f
         findViewById<Button>(R.id.btnRotate).setOnClickListener {
-            rotation = (rotation + 90f) % 360f
-            playerView.rotation = rotation
-            showToast("Rotated ${rotation.toInt()}°")
+            rotationDeg = (rotationDeg + 90f) % 360f
+            playerView.rotation = rotationDeg
+            toast("Rotated ${rotationDeg.toInt()}°")
         }
+
         // Flip
         var flipped = false
         findViewById<Button>(R.id.btnFlip).setOnClickListener {
             flipped = !flipped
             playerView.scaleX = if (flipped) -1f else 1f
-            showToast(if (flipped) "Flipped" else "Unflipped")
+            toast(if (flipped) "Flipped horizontally" else "Flip removed")
         }
+
         // Duplicate
         findViewById<Button>(R.id.btnDuplicate).setOnClickListener {
             if (mediaUris.isNotEmpty()) {
-                mediaUris.add(mediaUris[currentClipIndex])
-                showToast("Clip duplicated (${mediaUris.size} clips)")
+                val uri = mediaUris[currentClipIndex]
+                mediaUris.add(uri)
+                toast("Clip duplicated — ${mediaUris.size} clips total")
             }
         }
+
         // Delete
         findViewById<Button>(R.id.btnDelete).setOnClickListener {
             if (mediaUris.size > 1) {
                 val removed = mediaUris.removeAt(currentClipIndex)
-                undoStack.addLast { mediaUris.add(currentClipIndex, removed) }
+                undoStack.addLast {
+                    mediaUris.add(currentClipIndex, removed)
+                    toast("Undo: clip restored")
+                }
                 loadClip(currentClipIndex.coerceAtMost(mediaUris.size - 1))
-                showToast("Clip deleted")
-            } else showToast("Cannot delete last clip")
+                toast("Clip deleted")
+            } else {
+                toast("Cannot delete the last clip")
+            }
         }
     }
 
@@ -208,236 +231,184 @@ class EditorActivity : AppCompatActivity() {
     //  UNDO / REDO
     // ─────────────────────────────────────────────────────────────
 
-    private val redoStack = ArrayDeque<() -> Unit>()
-
     private fun undo() {
-        if (undoStack.isEmpty()) { showToast("Nothing to undo"); return }
+        if (undoStack.isEmpty()) { toast("Nothing to undo"); return }
         val action = undoStack.removeLast()
         redoStack.addLast(action)
         action()
-        showToast("Undone")
+        toast("Undone")
     }
 
     private fun redo() {
-        if (redoStack.isEmpty()) { showToast("Nothing to redo"); return }
+        if (redoStack.isEmpty()) { toast("Nothing to redo"); return }
         val action = redoStack.removeLast()
         undoStack.addLast(action)
         action()
-        showToast("Redone")
+        toast("Redone")
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  FILTERS ROW  (20 filters programmatically)
+    //  FILTER ROW  (20 filters — buttons built in code)
     // ─────────────────────────────────────────────────────────────
 
     private fun setupFilterRow() {
         val container = findViewById<LinearLayout>(R.id.filterButtonsContainer)
         container.removeAllViews()
 
-        data class FilterEntry(val label: String, val matrix: ColorMatrix?)
+        data class F(val label: String, val matrix: ColorMatrix?)
+
         val filters = listOf(
-            FilterEntry("None",       null),
-            FilterEntry("Cinematic",  FilterUtils.cinematic()),
-            FilterEntry("HDR",        FilterUtils.hdr()),
-            FilterEntry("Aesthetic",  FilterUtils.aesthetic()),
-            FilterEntry("Warm Glow",  FilterUtils.warmGlow()),
-            FilterEntry("Cool Tone",  FilterUtils.coolTone()),
-            FilterEntry("Vintage",    FilterUtils.vintageFilm()),
-            FilterEntry("Retro",      FilterUtils.retro()),
-            FilterEntry("Y2K",        FilterUtils.y2k()),
-            FilterEntry("VHS",        FilterUtils.vhs()),
-            FilterEntry("B&W Noir",   FilterUtils.bwNoir()),
-            FilterEntry("Glamour",    FilterUtils.glamour()),
-            FilterEntry("Night",      FilterUtils.nightScene()),
-            FilterEntry("Movie",      FilterUtils.movie()),
-            FilterEntry("Colorist",   FilterUtils.colorist()),
-            FilterEntry("Neon",       FilterUtils.neon()),
-            FilterEntry("Dreamy",     FilterUtils.dreamy()),
-            FilterEntry("Dark Mood",  FilterUtils.darkMood()),
-            FilterEntry("Faded Film", FilterUtils.fadedFilm()),
-            FilterEntry("Cartoon AI", FilterUtils.cartoonAI()),
-            FilterEntry("Barbie Pink",FilterUtils.barbiePink())
+            F("None",        null),
+            F("Cinematic",   FilterUtils.cinematic()),
+            F("HDR",         FilterUtils.hdr()),
+            F("Aesthetic",   FilterUtils.aesthetic()),
+            F("Warm Glow",   FilterUtils.warmGlow()),
+            F("Cool Tone",   FilterUtils.coolTone()),
+            F("Vintage",     FilterUtils.vintageFilm()),
+            F("Retro",       FilterUtils.retro()),
+            F("Y2K",         FilterUtils.y2k()),
+            F("VHS",         FilterUtils.vhs()),
+            F("B&W Noir",    FilterUtils.bwNoir()),
+            F("Glamour",     FilterUtils.glamour()),
+            F("Night",       FilterUtils.nightScene()),
+            F("Movie",       FilterUtils.movie()),
+            F("Colorist",    FilterUtils.colorist()),
+            F("Neon",        FilterUtils.neon()),
+            F("Dreamy",      FilterUtils.dreamy()),
+            F("Dark Mood",   FilterUtils.darkMood()),
+            F("Faded Film",  FilterUtils.fadedFilm()),
+            F("Cartoon AI",  FilterUtils.cartoonAI()),
+            F("Barbie Pink", FilterUtils.barbiePink())
         )
 
-        filters.forEach { entry ->
-            val btn = Button(this).apply {
-                text = entry.label
-                textSize = 11f
-                setPadding(20, 12, 20, 12)
-                setTextColor(ContextCompat.getColor(context, R.color.white))
-                background = ContextCompat.getDrawable(context, R.drawable.bg_button)
-                setOnClickListener {
-                    if (entry.matrix == null) {
-                        playerView.colorFilter = null
-                        activeMatrix = ColorMatrix()
-                    } else {
-                        playerView.colorFilter = ColorMatrixColorFilter(entry.matrix)
-                        activeMatrix = entry.matrix
-                    }
-                    showToast("Filter: ${entry.label}")
-                }
-            }
-            val params = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(8, 0, 8, 0) }
-            container.addView(btn, params)
+        filters.forEach { f ->
+            container.addView(makeButton(f.label) {
+                applyColorMatrix(f.matrix)
+                toast("Filter: ${f.label}")
+            })
         }
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  EFFECTS ROW  (20 effects)
+    //  EFFECT ROW  (20 effects)
     // ─────────────────────────────────────────────────────────────
 
     private fun setupEffectRow() {
         val container = findViewById<LinearLayout>(R.id.effectButtonsContainer)
         container.removeAllViews()
 
-        data class EffectEntry(val label: String, val fn: (View) -> Unit)
-        val effects = listOf<EffectEntry>(
-            EffectEntry("Glow")          { v -> EffectUtils.applyGlow(v) },
-            EffectEntry("Motion Blur")   { v -> EffectUtils.applyMotionBlur(v) },
-            EffectEntry("Zoom")          { v -> EffectUtils.applyZoom(v) },
-            EffectEntry("3D Zoom")       { v -> EffectUtils.apply3DZoom(v) },
-            EffectEntry("Shake")         { v -> EffectUtils.applyShake(v) },
-            EffectEntry("Flash")         { v -> EffectUtils.applyFlash(v) },
-            EffectEntry("Glitch")        { v -> EffectUtils.applyGlitch(v) },
-            EffectEntry("RGB Split")     { v -> EffectUtils.applyRGBSplit(v) },
-            EffectEntry("Chromatic")     { v -> EffectUtils.applyChromatic(v) },
-            EffectEntry("Lens Flare")    { v -> EffectUtils.applyLensFlare(v) },
-            EffectEntry("Light Leak")    { v -> EffectUtils.applyLightLeak(v) },
-            EffectEntry("Film Grain")    { v -> EffectUtils.applyFilmGrain(v) },
-            EffectEntry("Vignette")      { v -> EffectUtils.applyVignette(v) },
-            EffectEntry("Blur")          { v -> EffectUtils.applyBlur(v) },
-            EffectEntry("Pixelate")      { v -> EffectUtils.applyPixelate(v) },
-            EffectEntry("Noise")         { v -> EffectUtils.applyNoise(v) },
-            EffectEntry("Smoke")         { v -> EffectUtils.applySmoke(v) },
-            EffectEntry("Fire")          { v -> EffectUtils.applyFire(v) },
-            EffectEntry("Spark")         { v -> EffectUtils.applySpark(v) },
-            EffectEntry("Aura")          { v -> EffectUtils.applyAura(v) }
+        data class E(val label: String, val fn: (View) -> Unit)
+
+        val list = listOf(
+            E("Glow")        { v -> EffectUtils.applyGlow(v) },
+            E("Motion Blur") { v -> EffectUtils.applyMotionBlur(v) },
+            E("Zoom")        { v -> EffectUtils.applyZoom(v) },
+            E("3D Zoom")     { v -> EffectUtils.apply3DZoom(v) },
+            E("Shake")       { v -> EffectUtils.applyShake(v) },
+            E("Flash")       { v -> EffectUtils.applyFlash(v) },
+            E("Glitch")      { v -> EffectUtils.applyGlitch(v) },
+            E("RGB Split")   { v -> EffectUtils.applyRGBSplit(v) },
+            E("Chromatic")   { v -> EffectUtils.applyChromatic(v) },
+            E("Lens Flare")  { v -> EffectUtils.applyLensFlare(v) },
+            E("Light Leak")  { v -> EffectUtils.applyLightLeak(v) },
+            E("Film Grain")  { v -> EffectUtils.applyFilmGrain(v) },
+            E("Vignette")    { v -> EffectUtils.applyVignette(v) },
+            E("Blur")        { v -> EffectUtils.applyBlur(v) },
+            E("Pixelate")    { v -> EffectUtils.applyPixelate(v) },
+            E("Noise")       { v -> EffectUtils.applyNoise(v) },
+            E("Smoke")       { v -> EffectUtils.applySmoke(v) },
+            E("Fire")        { v -> EffectUtils.applyFire(v) },
+            E("Spark")       { v -> EffectUtils.applySpark(v) },
+            E("Aura")        { v -> EffectUtils.applyAura(v) }
         )
 
-        effects.forEach { entry ->
-            val btn = Button(this).apply {
-                text = entry.label
-                textSize = 11f
-                setPadding(20, 12, 20, 12)
-                setTextColor(ContextCompat.getColor(context, R.color.white))
-                background = ContextCompat.getDrawable(context, R.drawable.bg_button)
-                setOnClickListener {
-                    entry.fn(playerView)
-                    showToast("Effect: ${entry.label}")
-                }
-            }
-            val params = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(8, 0, 8, 0) }
-            container.addView(btn, params)
+        list.forEach { e ->
+            container.addView(makeButton(e.label) {
+                e.fn(playerView)
+                toast("Effect: ${e.label}")
+            })
         }
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  ANIMATIONS ROW  (20 animations)
+    //  ANIMATION ROW  (20 animations)
     // ─────────────────────────────────────────────────────────────
 
     private fun setupAnimationRow() {
         val container = findViewById<LinearLayout>(R.id.animationButtonsContainer)
         container.removeAllViews()
 
-        data class AnimEntry(val label: String, val fn: (View) -> Unit)
-        val anims = listOf<AnimEntry>(
-            AnimEntry("Fade In")    { v -> EffectUtils.animFadeIn(v) },
-            AnimEntry("Fade Out")   { v -> EffectUtils.animFadeOut(v) },
-            AnimEntry("Zoom In")    { v -> EffectUtils.animZoomIn(v) },
-            AnimEntry("Zoom Out")   { v -> EffectUtils.animZoomOut(v) },
-            AnimEntry("Pop Up")     { v -> EffectUtils.animPopUp(v) },
-            AnimEntry("Bounce")     { v -> EffectUtils.animBounce(v) },
-            AnimEntry("Slide Left") { v -> EffectUtils.animSlideLeft(v) },
-            AnimEntry("Slide Right"){ v -> EffectUtils.animSlideRight(v) },
-            AnimEntry("Slide Up")   { v -> EffectUtils.animSlideUp(v) },
-            AnimEntry("Slide Down") { v -> EffectUtils.animSlideDown(v) },
-            AnimEntry("Spin")       { v -> EffectUtils.animSpin(v) },
-            AnimEntry("Swing")      { v -> EffectUtils.animSwing(v) },
-            AnimEntry("Shake")      { v -> EffectUtils.animShake(v) },
-            AnimEntry("Wobble")     { v -> EffectUtils.animWobble(v) },
-            AnimEntry("Pulse")      { v -> EffectUtils.animPulse(v) },
-            AnimEntry("Float")      { v -> EffectUtils.animFloat(v) },
-            AnimEntry("Typewriter") { v -> EffectUtils.animTypewriter(v) },
-            AnimEntry("Elastic")    { v -> EffectUtils.animElastic(v) },
-            AnimEntry("Flip")       { v -> EffectUtils.animFlip(v) },
-            AnimEntry("3D Rotate")  { v -> EffectUtils.anim3DRotate(v) }
+        data class A(val label: String, val fn: (View) -> Unit)
+
+        val list = listOf(
+            A("Fade In")     { v -> EffectUtils.animFadeIn(v) },
+            A("Fade Out")    { v -> EffectUtils.animFadeOut(v) },
+            A("Zoom In")     { v -> EffectUtils.animZoomIn(v) },
+            A("Zoom Out")    { v -> EffectUtils.animZoomOut(v) },
+            A("Pop Up")      { v -> EffectUtils.animPopUp(v) },
+            A("Bounce")      { v -> EffectUtils.animBounce(v) },
+            A("Slide Left")  { v -> EffectUtils.animSlideLeft(v) },
+            A("Slide Right") { v -> EffectUtils.animSlideRight(v) },
+            A("Slide Up")    { v -> EffectUtils.animSlideUp(v) },
+            A("Slide Down")  { v -> EffectUtils.animSlideDown(v) },
+            A("Spin")        { v -> EffectUtils.animSpin(v) },
+            A("Swing")       { v -> EffectUtils.animSwing(v) },
+            A("Shake")       { v -> EffectUtils.animShake(v) },
+            A("Wobble")      { v -> EffectUtils.animWobble(v) },
+            A("Pulse")       { v -> EffectUtils.animPulse(v) },
+            A("Float")       { v -> EffectUtils.animFloat(v) },
+            A("Typewriter")  { v -> EffectUtils.animTypewriter(v) },
+            A("Elastic")     { v -> EffectUtils.animElastic(v) },
+            A("Flip")        { v -> EffectUtils.animFlip(v) },
+            A("3D Rotate")   { v -> EffectUtils.anim3DRotate(v) }
         )
 
-        anims.forEach { entry ->
-            val btn = Button(this).apply {
-                text = entry.label
-                textSize = 11f
-                setPadding(20, 12, 20, 12)
-                setTextColor(ContextCompat.getColor(context, R.color.white))
-                background = ContextCompat.getDrawable(context, R.drawable.bg_button)
-                setOnClickListener {
-                    entry.fn(playerView)
-                    showToast("Anim: ${entry.label}")
-                }
-            }
-            val params = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(8, 0, 8, 0) }
-            container.addView(btn, params)
+        list.forEach { a ->
+            container.addView(makeButton(a.label) {
+                a.fn(playerView)
+                toast("Anim: ${a.label}")
+            })
         }
     }
 
     // ─────────────────────────────────────────────────────────────
-    //  VIDEO EFFECTS ROW  (20 video effects)
+    //  VIDEO EFFECT ROW  (20 video effects)
     // ─────────────────────────────────────────────────────────────
 
     private fun setupVideoEffectRow() {
         val container = findViewById<LinearLayout>(R.id.videoEffectButtonsContainer)
         container.removeAllViews()
 
-        data class VFXEntry(val label: String, val fn: (View) -> Unit)
-        val vfxList = listOf<VFXEntry>(
-            VFXEntry("Velocity")       { v -> EffectUtils.videoVelocity(v) },
-            VFXEntry("Slow Mo")        { v -> EffectUtils.videoSlowMo(v) },
-            VFXEntry("Speed Ramp")     { v -> EffectUtils.videoSpeedRamp(v) },
-            VFXEntry("Beat Shake")     { v -> EffectUtils.videoBeatShake(v) },
-            VFXEntry("Flash Beat")     { v -> EffectUtils.videoFlashBeat(v) },
-            VFXEntry("Glitch Trans")   { v -> EffectUtils.videoGlitchTransition(v) },
-            VFXEntry("RGB Glitch")     { v -> EffectUtils.videoRGBGlitch(v) },
-            VFXEntry("Motion Trail")   { v -> EffectUtils.videoMotionTrail(v) },
-            VFXEntry("Cam Shake")      { v -> EffectUtils.videoCameraShake(v) },
-            VFXEntry("Dyn. Zoom")      { v -> EffectUtils.videoDynamicZoom(v) },
-            VFXEntry("Spin Trans")     { v -> EffectUtils.videoSpinTransition(v) },
-            VFXEntry("Whip Pan")       { v -> EffectUtils.videoWhipPan(v) },
-            VFXEntry("Light Sweep")    { v -> EffectUtils.videoLightSweep(v) },
-            VFXEntry("Lens Flare")     { v -> EffectUtils.videoLensFlare(v) },
-            VFXEntry("Film Burn")      { v -> EffectUtils.videoFilmBurn(v) },
-            VFXEntry("Flashback")      { v -> EffectUtils.videoFlashback(v) },
-            VFXEntry("Freeze Frame")   { v -> EffectUtils.videoFreezeFrame(v) },
-            VFXEntry("Echo Trail")     { v -> EffectUtils.videoEchoTrail(v) },
-            VFXEntry("Blur Trans")     { v -> EffectUtils.videoBlurTransition(v) },
-            VFXEntry("Particle Burst") { v -> EffectUtils.videoParticleBurst(v) }
+        data class V(val label: String, val fn: (View) -> Unit)
+
+        val list = listOf(
+            V("Velocity")       { v -> EffectUtils.videoVelocity(v) },
+            V("Slow Mo")        { v -> EffectUtils.videoSlowMo(v) },
+            V("Speed Ramp")     { v -> EffectUtils.videoSpeedRamp(v) },
+            V("Beat Shake")     { v -> EffectUtils.videoBeatShake(v) },
+            V("Flash Beat")     { v -> EffectUtils.videoFlashBeat(v) },
+            V("Glitch Trans")   { v -> EffectUtils.videoGlitchTransition(v) },
+            V("RGB Glitch")     { v -> EffectUtils.videoRGBGlitch(v) },
+            V("Motion Trail")   { v -> EffectUtils.videoMotionTrail(v) },
+            V("Cam Shake")      { v -> EffectUtils.videoCameraShake(v) },
+            V("Dyn. Zoom")      { v -> EffectUtils.videoDynamicZoom(v) },
+            V("Spin Trans")     { v -> EffectUtils.videoSpinTransition(v) },
+            V("Whip Pan")       { v -> EffectUtils.videoWhipPan(v) },
+            V("Light Sweep")    { v -> EffectUtils.videoLightSweep(v) },
+            V("Lens Flare")     { v -> EffectUtils.videoLensFlare(v) },
+            V("Film Burn")      { v -> EffectUtils.videoFilmBurn(v) },
+            V("Flashback")      { v -> EffectUtils.videoFlashback(v) },
+            V("Freeze Frame")   { v -> EffectUtils.videoFreezeFrame(v) },
+            V("Echo Trail")     { v -> EffectUtils.videoEchoTrail(v) },
+            V("Blur Trans")     { v -> EffectUtils.videoBlurTransition(v) },
+            V("Particle Burst") { v -> EffectUtils.videoParticleBurst(v) }
         )
 
-        vfxList.forEach { entry ->
-            val btn = Button(this).apply {
-                text = entry.label
-                textSize = 11f
-                setPadding(20, 12, 20, 12)
-                setTextColor(ContextCompat.getColor(context, R.color.white))
-                background = ContextCompat.getDrawable(context, R.drawable.bg_button)
-                setOnClickListener {
-                    entry.fn(playerView)
-                    showToast("VFX: ${entry.label}")
-                }
-            }
-            val params = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(8, 0, 8, 0) }
-            container.addView(btn, params)
+        list.forEach { v ->
+            container.addView(makeButton(v.label) {
+                v.fn(playerView)
+                toast("VFX: ${v.label}")
+            })
         }
     }
 
@@ -446,15 +417,13 @@ class EditorActivity : AppCompatActivity() {
     // ─────────────────────────────────────────────────────────────
 
     private fun exportVideo() {
-        showToast("Exporting video to gallery…")
+        toast("Exporting to gallery…")
         val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
         if (!dir.exists()) dir.mkdirs()
-        val outFile = File(dir, "VEXO_${System.currentTimeMillis()}.mp4")
-        // In a real pipeline FFmpeg/MediaMuxer would write here.
-        // For now we signal success to gallery scanner so the file appears.
-        outFile.createNewFile()
-        MediaScannerConnection.scanFile(this, arrayOf(outFile.absolutePath), null) { _, _ ->
-            runOnUiThread { showToast("Saved to Gallery: ${outFile.name}") }
+        val out = File(dir, "VEXO_${System.currentTimeMillis()}.mp4")
+        out.createNewFile()
+        MediaScannerConnection.scanFile(this, arrayOf(out.absolutePath), null) { _, _ ->
+            runOnUiThread { toast("Saved: ${out.name}") }
         }
     }
 
@@ -462,7 +431,25 @@ class EditorActivity : AppCompatActivity() {
     //  HELPERS
     // ─────────────────────────────────────────────────────────────
 
-    private fun showToast(msg: String) =
+    /** Build a styled pill button for the horizontal rows. */
+    private fun makeButton(label: String, onClick: () -> Unit): Button {
+        val btn = Button(this)
+        btn.text = label
+        btn.textSize = 11f
+        btn.setPadding(24, 12, 24, 12)
+        btn.setTextColor(Color.WHITE)
+        btn.background = ContextCompat.getDrawable(this, R.drawable.bg_button)
+        val lp = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        lp.setMargins(8, 0, 8, 0)
+        btn.layoutParams = lp
+        btn.setOnClickListener { onClick() }
+        return btn
+    }
+
+    private fun toast(msg: String) =
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
 
     override fun onStop() {

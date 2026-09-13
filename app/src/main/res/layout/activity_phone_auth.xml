@@ -1,97 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_primary"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:background="@color/bg_primary"
+    android:padding="24dp"
+    android:gravity="center">
 
-    <ImageView
-        android:id="@+id/ivBack"
+    <ImageButton
+        android:id="@+id/btnBack"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginTop="16dp"
-        android:padding="8dp"
-        android:src="@android:drawable/ic_media_previous"/>
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:tint="#FFFFFF"
+        android:layout_gravity="start"
+        android:layout_marginBottom="24dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:text="Phone Verification"
-        android:textColor="@color/text_primary"
+        android:text="Phone Login"
+        android:textColor="#FFFFFF"
         android:textSize="26sp"
-        android:textStyle="bold"/>
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="Enter your mobile number to get OTP"
-        android:textColor="@color/text_secondary"
-        android:textSize="14sp"/>
-
-    <com.google.android.material.textfield.TextInputLayout
+    <EditText
+        android:id="@+id/etPhone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:hint="+91XXXXXXXXXX"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etPhone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:inputType="phone"
-            android:textColor="@color/text_primary"/>
-    </com.google.android.material.textfield.TextInputLayout>
+        android:hint="+91 Phone Number"
+        android:textColorHint="#888888"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#444444"
+        android:padding="14dp"
+        android:inputType="phone"
+        android:layout_marginBottom="12dp" />
 
-    <com.google.android.material.button.MaterialButton
+    <Button
         android:id="@+id/btnSendOtp"
         android:layout_width="match_parent"
         android:layout_height="52dp"
-        android:layout_marginTop="20dp"
         android:text="Send OTP"
-        style="@style/VexoButton"/>
+        android:textColor="#FFFFFF"
+        android:backgroundTint="@color/vexo_purple"
+        android:layout_marginBottom="24dp" />
 
-    <LinearLayout
-        android:id="@+id/layoutOtp"
+    <EditText
+        android:id="@+id/etOtp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone">
+        android:hint="Enter OTP (demo: 123456)"
+        android:textColorHint="#888888"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#444444"
+        android:padding="14dp"
+        android:inputType="numberPassword"
+        android:layout_marginBottom="12dp" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:hint="Enter 6-digit OTP"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etOtp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:maxLength="6"
-                android:textColor="@color/text_primary"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVerify"
-            android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="16dp"
-            android:text="Verify OTP"
-            style="@style/VexoButton"/>
-
-    </LinearLayout>
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="20dp"
-        android:visibility="gone"/>
+    <Button
+        android:id="@+id/btnVerifyOtp"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:text="Verify OTP"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="@color/vexo_green" />
 
 </LinearLayout>

@@ -5,29 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.vexo.app.databinding.FragmentProjectsBinding
+import com.vexo.app.R
 
 class ProjectsFragment : Fragment() {
-
-    private var _binding: FragmentProjectsBinding? = null
-    private val binding get() = _binding!!
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentProjectsBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        binding.tvEmpty.visibility = View.VISIBLE
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return inflater.inflate(R.layout.fragment_projects, container, false)
     }
 }

@@ -1,61 +1,53 @@
 package com.vexo.app.ui
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.View
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import com.vexo.app.databinding.ActivityPhoneAuthBinding
+import com.vexo.app.R
 
 class PhoneAuthActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityPhoneAuthBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPhoneAuthBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_phone_auth)
 
-        binding.ivBack.setOnClickListener { finish() }
+        val etPhone   = findViewById<EditText>(R.id.etPhone)
+        val etOtp     = findViewById<EditText>(R.id.etOtp)
+        val btnSendOtp= findViewById<Button>(R.id.btnSendOtp)
+        val btnVerify = findViewById<Button>(R.id.btnVerifyOtp)
+        val btnBack   = findViewById<ImageButton>(R.id.btnBack)
 
-        binding.btnSendOtp.setOnClickListener {
-            val phone = binding.etPhone.text.toString().trim()
+        btnBack?.setOnClickListener { finish() }
+
+        btnSendOtp?.setOnClickListener {
+            val phone = etPhone?.text.toString().trim()
             if (phone.length < 10) {
-                binding.etPhone.error = "Enter valid number"
+                Toast.makeText(this, "Enter valid phone number", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            binding.progressBar.visibility = View.VISIBLE
-            // Simulate OTP sent
-            Handler(Looper.getMainLooper()).postDelayed({
-                binding.progressBar.visibility = View.GONE
-                binding.layoutOtp.visibility = View.VISIBLE
-                Toast.makeText(this, "OTP Sent!", Toast.LENGTH_SHORT).show()
-            }, 1500)
+            Toast.makeText(this, "OTP sent to $phone (demo: 123456)", Toast.LENGTH_LONG).show()
         }
 
-        binding.btnVerify.setOnClickListener {
-            val otp = binding.etOtp.text.toString().trim()
-            if (otp.length != 6) {
-                binding.etOtp.error = "Enter 6 digit OTP"
-                return@setOnClickListener
+        btnVerify?.setOnClickListener {
+            val otp = etOtp?.text.toString().trim()
+            if (otp == "123456") {
+                Toast.makeText(this, "OTP Verified!", Toast.LENGTH_SHORT).show()
+                Handler(Looper.getMainLooper()).postDelayed({
+                    val prefs = getSharedPreferences("vexo_prefs", MODE_PRIVATE)
+                    prefs.edit()
+                        .putBoolean("is_logged_in", true)
+                        .putString("user_name", "Phone User")
+                        .putString("user_email", "${etPhone?.text}@phone.vexo")
+                        .apply()
+                    startActivity(Intent(this, MainActivity::class.java))
+                    finishAffinity()
+                }, 800)
+            } else {
+                Toast.makeText(this, "Wrong OTP! Use 123456", Toast.LENGTH_SHORT).show()
             }
-            binding.progressBar.visibility = View.VISIBLE
-            Handler(Looper.getMainLooper()).postDelayed({
-                binding.progressBar.visibility = View.GONE
-                // Save login
-                getSharedPreferences("vexo_prefs", Context.MODE_PRIVATE)
-                    .edit()
-                    .putBoolean("is_logged_in", true)
-                    .putString("user_name", "VEXO User")
-                    .putString("user_email",
-                        binding.etPhone.text.toString())
-                    .apply()
-                startActivity(Intent(this, MainActivity::class.java))
-                finishAffinity()
-            }, 1500)
         }
     }
 }

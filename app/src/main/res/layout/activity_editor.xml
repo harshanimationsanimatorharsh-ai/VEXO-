@@ -10,103 +10,168 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="52dp"
+        android:background="@color/bg_secondary"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="12dp">
+        android:paddingHorizontal="8dp">
 
         <ImageView
             android:id="@+id/ivClose"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:padding="6dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:tint="@color/text_primary"/>
 
-        <View
+        <ImageView
+            android:id="@+id/ivUndo"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="4dp"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_menu_revert"
+            android:tint="@color/text_secondary"/>
+
+        <ImageView
+            android:id="@+id/ivRedo"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="2dp"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_menu_rotate"
+            android:tint="@color/text_secondary"/>
+
+        <TextView
+            android:id="@+id/tvClipCount"
             android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1"/>
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="1 Clip"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"/>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnExport"
             android:layout_width="wrap_content"
             android:layout_height="36dp"
+            android:paddingHorizontal="16dp"
             android:text="Export"
             android:textSize="13sp"
             style="@style/VexoButton"/>
 
     </LinearLayout>
 
-    <!-- Player -->
-    <androidx.media3.ui.PlayerView
-        android:id="@+id/playerView"
+    <!-- Player View + Text Overlay -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="220dp"
-        android:background="@color/bg_editor"/>
+        android:layout_height="200dp"
+        android:background="@color/bg_editor">
 
-    <!-- Playback -->
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/playerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/bg_editor"/>
+
+        <!-- Text Overlay -->
+        <TextView
+            android:id="@+id/tvOverlayText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="#80000000"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:text=""
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:visibility="gone"/>
+
+    </FrameLayout>
+
+    <!-- Playback Controls -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="40dp"
+        android:background="@color/bg_secondary"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="8dp">
+
+        <ImageView
+            android:id="@+id/ivPrev"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:tint="@color/text_primary"/>
 
         <ImageView
             android:id="@+id/ivPlay"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@android:drawable/ic_media_play"/>
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginHorizontal="4dp"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_media_play"
+            android:tint="@color/text_primary"/>
+
+        <ImageView
+            android:id="@+id/ivNext"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:padding="4dp"
+            android:src="@android:drawable/ic_media_next"
+            android:tint="@color/text_primary"/>
 
         <SeekBar
             android:id="@+id/seekBar"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="12dp"
+            android:layout_marginHorizontal="8dp"
             android:layout_weight="1"
             android:progressTint="@color/vexo_purple"
             android:thumbTint="@color/text_primary"/>
 
+        <TextView
+            android:id="@+id/tvTimecode"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:text="0s / 0s"
+            android:textColor="@color/text_tertiary"
+            android:textSize="10sp"/>
+
     </LinearLayout>
 
     <!-- Timeline -->
-    <HorizontalScrollView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="60dp"
         android:background="@color/bg_timeline"
-        android:scrollbars="none">
+        android:orientation="vertical">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
+        <HorizontalScrollView
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="8dp">
+            android:scrollbars="none">
 
-            <View
-                android:layout_width="140dp"
-                android:layout_height="50dp"
-                android:layout_marginEnd="4dp"
-                android:background="@color/clip_video"/>
+            <LinearLayout
+                android:id="@+id/timelineContainer"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="6dp"/>
 
-            <View
-                android:layout_width="90dp"
-                android:layout_height="50dp"
-                android:layout_marginEnd="4dp"
-                android:background="@color/clip_video"/>
+        </HorizontalScrollView>
 
-            <View
-                android:layout_width="170dp"
-                android:layout_height="50dp"
-                android:background="@color/clip_video"/>
+    </LinearLayout>
 
-        </LinearLayout>
-
-    </HorizontalScrollView>
-
-    <!-- Clip Tools -->
+    <!-- Clip Edit Tools -->
     <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="58dp"
+        android:layout_height="56dp"
         android:background="@color/bg_secondary"
         android:scrollbars="none">
 
@@ -115,535 +180,920 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="8dp">
+            android:paddingHorizontal="4dp">
 
+            <!-- Trim -->
             <LinearLayout android:id="@+id/toolTrim"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="✂" android:textSize="18sp"
-                    android:textColor="@color/text_primary"/>
+                    android:textColor="@color/vexo_purple"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Trim" android:textSize="10sp"
+                    android:text="Trim" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
+            <!-- Split -->
             <LinearLayout android:id="@+id/toolSplit"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="⚡" android:textSize="18sp"
-                    android:textColor="@color/text_primary"/>
+                    android:textColor="@color/vexo_green"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Split" android:textSize="10sp"
+                    android:text="Split" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
+            <!-- Speed -->
             <LinearLayout android:id="@+id/toolSpeed"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🏃" android:textSize="18sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Speed" android:textSize="10sp"
+                    android:text="Speed" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
+            <!-- Volume -->
             <LinearLayout android:id="@+id/toolVolume"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🔊" android:textSize="18sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Volume" android:textSize="10sp"
+                    android:text="Volume" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
+            <!-- Mute -->
+            <LinearLayout android:id="@+id/toolMute"
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔇" android:textSize="18sp"/>
+                <TextView android:id="@+id/toolMuteText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mute" android:textSize="9sp"
+                    android:textColor="@color/text_secondary"/>
+            </LinearLayout>
+
+            <!-- Rotate -->
             <LinearLayout android:id="@+id/toolRotate"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🔄" android:textSize="18sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Rotate" android:textSize="10sp"
+                    android:text="Rotate" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
+            <!-- Flip -->
             <LinearLayout android:id="@+id/toolFlip"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="↔" android:textSize="18sp"
                     android:textColor="@color/text_primary"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Flip" android:textSize="10sp"
+                    android:text="Flip" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
-            <LinearLayout android:id="@+id/toolReverse"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="⏪" android:textSize="18sp"/>
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Reverse" android:textSize="10sp"
-                    android:textColor="@color/text_secondary"/>
-            </LinearLayout>
-
+            <!-- Duplicate -->
             <LinearLayout android:id="@+id/toolDuplicate"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="📋" android:textSize="18sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Copy" android:textSize="10sp"
+                    android:text="Dupe" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
+            <!-- Delete -->
             <LinearLayout android:id="@+id/toolDelete"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
-                android:gravity="center"
-                android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🗑" android:textSize="18sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Delete" android:textSize="10sp"
+                    android:text="Delete" android:textSize="9sp"
+                    android:textColor="@color/error"/>
+            </LinearLayout>
+
+            <!-- Reverse -->
+            <LinearLayout android:id="@+id/toolReverse"
+                android:layout_width="56dp" android:layout_height="50dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⏪" android:textSize="18sp"/>
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Reverse" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
-            <LinearLayout android:id="@+id/toolMute"
-                android:layout_width="58dp"
-                android:layout_height="50dp"
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- ALL PANELS SCROLL CONTAINER -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- TRIM PANEL -->
+            <LinearLayout android:id="@+id/trimPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Trim Clip"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tvTrimDuration"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Duration: 0s"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Start (seconds)"
+                    android:textColor="@color/vexo_green"
+                    android:textSize="12sp"/>
+                <SeekBar android:id="@+id/trimStart"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100" android:progress="0"
+                    android:progressTint="@color/vexo_green"
+                    android:thumbTint="@color/vexo_green"/>
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="End (seconds)"
+                    android:textColor="@color/vexo_pink"
+                    android:textSize="12sp"/>
+                <SeekBar android:id="@+id/trimEnd"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="100" android:progress="100"
+                    android:progressTint="@color/vexo_pink"
+                    android:thumbTint="@color/vexo_pink"/>
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTrimCancel"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Cancel"
+                        style="@style/VexoButtonOutline"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnTrimDone"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="Apply Trim"
+                        style="@style/VexoButton"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- SPEED PANEL -->
+            <LinearLayout android:id="@+id/speedPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Playback Speed"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <Button android:id="@+id/btnSpeed025"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="0.25x"
+                        android:textSize="9sp" android:layout_margin="2dp"
+                        android:backgroundTint="@color/bg_elevated"
+                        android:textColor="@color/text_primary"/>
+                    <Button android:id="@+id/btnSpeed05"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="0.5x"
+                        android:textSize="9sp" android:layout_margin="2dp"
+                        android:backgroundTint="@color/bg_elevated"
+                        android:textColor="@color/text_primary"/>
+                    <Button android:id="@+id/btnSpeed075"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="0.75x"
+                        android:textSize="9sp" android:layout_margin="2dp"
+                        android:backgroundTint="@color/bg_elevated"
+                        android:textColor="@color/text_primary"/>
+                    <Button android:id="@+id/btnSpeed1"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="1x"
+                        android:textSize="9sp" android:layout_margin="2dp"
+                        android:backgroundTint="@color/vexo_purple"
+                        android:textColor="@color/text_primary"/>
+                    <Button android:id="@+id/btnSpeed15"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="1.5x"
+                        android:textSize="9sp" android:layout_margin="2dp"
+                        android:backgroundTint="@color/bg_elevated"
+                        android:textColor="@color/text_primary"/>
+                    <Button android:id="@+id/btnSpeed2"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="2x"
+                        android:textSize="9sp" android:layout_margin="2dp"
+                        android:backgroundTint="@color/bg_elevated"
+                        android:textColor="@color/text_primary"/>
+                    <Button android:id="@+id/btnSpeed3"
+                        android:layout_width="0dp" android:layout_height="40dp"
+                        android:layout_weight="1" android:text="3x"
+                        android:textSize="9sp" android:layout_margin="2dp"
+                        android:backgroundTint="@color/bg_elevated"
+                        android:textColor="@color/text_primary"/>
+                </LinearLayout>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSpeedDone"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="12dp"
+                    android:text="Done"
+                    style="@style/VexoButton"/>
+            </LinearLayout>
+
+            <!-- VOLUME PANEL -->
+            <LinearLayout android:id="@+id/volumePanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+                    <TextView android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Volume"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tvVolumeValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="100%"
+                        android:textColor="@color/vexo_green"
+                        android:textSize="14sp"/>
+                </LinearLayout>
+                <SeekBar android:id="@+id/seekVolume"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:max="100" android:progress="100"
+                    android:progressTint="@color/vexo_green"
+                    android:thumbTint="@color/vexo_green"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVolumeDone"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="12dp"
+                    android:text="Done"
+                    style="@style/VexoButton"/>
+            </LinearLayout>
+
+            <!-- AUDIO PANEL -->
+            <LinearLayout android:id="@+id/audioPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎵 Audio"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+                <TextView android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center"
+                    android:text="+ Add Music from Device"
+                    android:textColor="@color/vexo_purple"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_card"
+                    android:layout_marginBottom="8dp"/>
+                <TextView android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center"
+                    android:text="🎤 Record Voice Over"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_card"
+                    android:layout_marginBottom="8dp"/>
+                <TextView android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:gravity="center"
+                    android:text="Extract Audio from Video"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_card"/>
+            </LinearLayout>
+
+            <!-- TEXT PANEL -->
+            <LinearLayout android:id="@+id/textPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="T  Add Text"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp" android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+                <com.google.android.material.textfield.TextInputLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Type your text here..."
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etTextInput"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/text_primary"/>
+                </com.google.android.material.textfield.TextInputLayout>
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp">
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRemoveText"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        android:text="Remove"
+                        style="@style/VexoButtonOutline"/>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddText"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="Add Text"
+                        style="@style/VexoButton"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- FILTERS PANEL -->
+            <LinearLayout android:id="@+id/filtersPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="12dp"
+                android:visibility="gone">
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+                    <TextView android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🎨 Filters"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" android:textStyle="bold"/>
+                    <TextView android:id="@+id/tvFilterActive"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Active: None"
+                        android:textColor="@color/vexo_purple"
+                        android:textSize="12sp"/>
+                </LinearLayout>
+                <HorizontalScrollView android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+                    <LinearLayout android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout android:id="@+id/btnFilterNone"
+                            android:layout_width="72dp" android:layout_height="72dp"
+                            android:gravity="center" android:background="@drawable/bg_card"
+                            android:layout_marginEnd="8dp" android:clickable="true"
+                            android:focusable="true" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="○" android:textSize="20sp"
+                                android:textColor="@color/text_primary"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="None" android:textSize="10sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/btnFilterBW"
+                            android:layout_width="72dp" android:layout_height="72dp"
+                            android:gravity="center" android:background="@drawable/bg_card"
+                            android:layout_marginEnd="8dp" android:clickable="true"
+                            android:focusable="true" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="◐" android:textSize="20sp"
+                                android:textColor="@color/text_primary"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="B&amp;W" android:textSize="10sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/btnFilterWarm"
+                            android:layout_width="72dp" android:layout_height="72dp"
+                            android:gravity="center" android:background="@drawable/bg_card"
+                            android:layout_marginEnd="8dp" android:clickable="true"
+                            android:focusable="true" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🌅" android:textSize="20sp"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Warm" android:textSize="10sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/btnFilterCool"
+                            android:layout_width="72dp" android:layout_height="72dp"
+                            android:gravity="center" android:background="@drawable/bg_card"
+                            android:layout_marginEnd="8dp" android:clickable="true"
+                            android:focusable="true" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="❄" android:textSize="20sp"
+                                android:textColor="@color/text_primary"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Cool" android:textSize="10sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/btnFilterVintage"
+                            android:layout_width="72dp" android:layout_height="72dp"
+                            android:gravity="center" android:background="@drawable/bg_card"
+                            android:layout_marginEnd="8dp" android:clickable="true"
+                            android:focusable="true" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="📷" android:textSize="20sp"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Vintage" android:textSize="10sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/btnFilterCinema"
+                            android:layout_width="72dp" android:layout_height="72dp"
+                            android:gravity="center" android:background="@drawable/bg_gradient"
+                            android:layout_marginEnd="8dp" android:clickable="true"
+                            android:focusable="true" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🎬" android:textSize="20sp"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Cinema" android:textSize="10sp"
+                                android:textColor="@color/text_primary"/>
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/btnFilterMoody"
+                            android:layout_width="72dp" android:layout_height="72dp"
+                            android:gravity="center" android:background="@drawable/bg_card"
+                            android:layout_marginEnd="8dp" android:clickable="true"
+                            android:focusable="true" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🌙" android:textSize="20sp"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Moody" android:textSize="10sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/btnFilterBright"
+                            android:layout_width="72dp" android:layout_height="72dp"
+                            android:gravity="center" android:background="@drawable/bg_card"
+                            android:clickable="true" android:focusable="true"
+                            android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="☀" android:textSize="20sp"
+                                android:textColor="@color/vexo_gold"/>
+                            <TextView android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Bright" android:textSize="10sp"
+                                android:textColor="@color/text_secondary"/>
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- ADJUST PANEL -->
+            <LinearLayout android:id="@+id/adjustPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⚙ Adjust"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+                    <TextView android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:text="Brightness"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"/>
+                    <SeekBar android:id="@+id/seekBrightness"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100" android:progress="50"
+                        android:progressTint="@color/vexo_gold"/>
+                    <TextView android:id="@+id/tvBrightnessVal"
+                        android:layout_width="32dp"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:gravity="end"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="4dp">
+                    <TextView android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:text="Contrast"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"/>
+                    <SeekBar android:id="@+id/seekContrast"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100" android:progress="50"
+                        android:progressTint="@color/vexo_purple"/>
+                    <TextView android:id="@+id/tvContrastVal"
+                        android:layout_width="32dp"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:gravity="end"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+                    <TextView android:layout_width="90dp"
+                        android:layout_height="wrap_content"
+                        android:text="Saturation"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp"/>
+                    <SeekBar android:id="@+id/seekSaturation"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100" android:progress="50"
+                        android:progressTint="@color/vexo_pink"/>
+                    <TextView android:id="@+id/tvSaturationVal"
+                        android:layout_width="32dp"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:gravity="end"/>
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAdjustReset"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:text="Reset All"
+                    style="@style/VexoButtonOutline"/>
+            </LinearLayout>
+
+            <!-- EFFECTS PANEL -->
+            <LinearLayout android:id="@+id/effectsPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
                 android:gravity="center"
                 android:orientation="vertical"
-                android:clickable="true"
-                android:focusable="true">
+                android:padding="16dp"
+                android:visibility="gone">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="🔇" android:textSize="18sp"/>
+                    android:text="✨ Effects"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" android:textStyle="bold"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Mute" android:textSize="10sp"
-                    android:textColor="@color/text_secondary"/>
+                    android:layout_marginTop="8dp"
+                    android:text="Advanced effects coming soon"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="13sp"/>
+            </LinearLayout>
+
+            <!-- TRANSITIONS PANEL -->
+            <LinearLayout android:id="@+id/transitionsPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔀 Transitions"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+                <HorizontalScrollView android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none">
+                    <LinearLayout android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <TextView android:layout_width="80dp"
+                            android:layout_height="64dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_card"
+                            android:text="Fade" android:textColor="@color/text_primary"
+                            android:textSize="12sp" android:layout_marginEnd="8dp"/>
+                        <TextView android:layout_width="80dp"
+                            android:layout_height="64dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_card"
+                            android:text="Slide" android:textColor="@color/text_primary"
+                            android:textSize="12sp" android:layout_marginEnd="8dp"/>
+                        <TextView android:layout_width="80dp"
+                            android:layout_height="64dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_card"
+                            android:text="Zoom" android:textColor="@color/text_primary"
+                            android:textSize="12sp" android:layout_marginEnd="8dp"/>
+                        <TextView android:layout_width="80dp"
+                            android:layout_height="64dp"
+                            android:gravity="center"
+                            android:background="@drawable/bg_gradient"
+                            android:text="Glitch" android:textColor="@color/text_primary"
+                            android:textSize="12sp"/>
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+
+            <!-- CANVAS PANEL -->
+            <LinearLayout android:id="@+id/canvasPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📐 Canvas / Aspect Ratio"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+                <LinearLayout android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="4">
+                    <TextView android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1" android:gravity="center"
+                        android:background="@drawable/bg_gradient"
+                        android:text="9:16" android:textColor="@color/text_primary"
+                        android:textSize="12sp" android:layout_margin="4dp"/>
+                    <TextView android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1" android:gravity="center"
+                        android:background="@drawable/bg_card"
+                        android:text="16:9" android:textColor="@color/text_primary"
+                        android:textSize="12sp" android:layout_margin="4dp"/>
+                    <TextView android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1" android:gravity="center"
+                        android:background="@drawable/bg_card"
+                        android:text="1:1" android:textColor="@color/text_primary"
+                        android:textSize="12sp" android:layout_margin="4dp"/>
+                    <TextView android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1" android:gravity="center"
+                        android:background="@drawable/bg_card"
+                        android:text="4:3" android:textColor="@color/text_primary"
+                        android:textSize="12sp" android:layout_margin="4dp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- CAPTIONS PANEL -->
+            <LinearLayout android:id="@+id/captionsPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💬 Auto Captions"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="AI Captions — Coming Soon"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="13sp"/>
+            </LinearLayout>
+
+            <!-- EXPORT PANEL -->
+            <LinearLayout android:id="@+id/exportPanel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:visibility="gone">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Export Video"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp" android:textStyle="bold"
+                    android:layout_marginBottom="16dp"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnExport480"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="480p — Standard"
+                    style="@style/VexoButtonOutline"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnExport720"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="720p — HD"
+                    style="@style/VexoButtonOutline"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnExport1080"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginBottom="12dp"
+                    android:text="1080p — Full HD ⭐"
+                    style="@style/VexoButton"/>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnExportCancel"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:backgroundTint="@color/bg_elevated"
+                    android:text="Cancel"
+                    android:textColor="@color/text_secondary"
+                    style="@style/VexoButton"/>
+            </LinearLayout>
+
+            <!-- PROGRESS OVERLAY -->
+            <LinearLayout android:id="@+id/progressOverlay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="20dp"
+                android:visibility="gone">
+                <ProgressBar android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <TextView android:id="@+id/tvProgressMsg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="Processing..."
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"/>
+            </LinearLayout>
+
+            <!-- SHARE BAR -->
+            <LinearLayout android:id="@+id/shareBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/bg_card"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:visibility="gone">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnShareExported"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="🚀 Share Video"
+                    style="@style/VexoButton"/>
             </LinearLayout>
 
         </LinearLayout>
-    </HorizontalScrollView>
-
-    <!-- Panels -->
-    <!-- Trim Panel -->
-    <LinearLayout
-        android:id="@+id/trimPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone">
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start" android:textColor="@color/text_secondary"/>
-        <SeekBar android:id="@+id/trimStart"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" android:progress="0"
-            android:progressTint="@color/vexo_green"/>
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="End" android:textColor="@color/text_secondary"/>
-        <SeekBar android:id="@+id/trimEnd"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" android:progress="100"
-            android:progressTint="@color/vexo_pink"/>
-        <LinearLayout android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTrimCancel"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="Cancel"
-                style="@style/VexoButtonOutline"/>
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnTrimDone"
-                android:layout_width="0dp"
-                android:layout_height="44dp"
-                android:layout_weight="1"
-                android:text="Apply"
-                style="@style/VexoButton"/>
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Speed Panel -->
-    <LinearLayout
-        android:id="@+id/speedPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone">
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Speed Control"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp" android:textStyle="bold"
-            android:layout_marginBottom="12dp"/>
-        <LinearLayout android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="6">
-            <Button android:id="@+id/btnSpeed025"
-                android:layout_width="0dp" android:layout_height="40dp"
-                android:layout_weight="1" android:text="0.25x"
-                android:textSize="10sp" android:layout_margin="2dp"
-                android:backgroundTint="@color/bg_elevated"
-                android:textColor="@color/text_primary"/>
-            <Button android:id="@+id/btnSpeed05"
-                android:layout_width="0dp" android:layout_height="40dp"
-                android:layout_weight="1" android:text="0.5x"
-                android:textSize="10sp" android:layout_margin="2dp"
-                android:backgroundTint="@color/bg_elevated"
-                android:textColor="@color/text_primary"/>
-            <Button android:id="@+id/btnSpeed1"
-                android:layout_width="0dp" android:layout_height="40dp"
-                android:layout_weight="1" android:text="1x"
-                android:textSize="10sp" android:layout_margin="2dp"
-                android:backgroundTint="@color/vexo_purple"
-                android:textColor="@color/text_primary"/>
-            <Button android:id="@+id/btnSpeed15"
-                android:layout_width="0dp" android:layout_height="40dp"
-                android:layout_weight="1" android:text="1.5x"
-                android:textSize="10sp" android:layout_margin="2dp"
-                android:backgroundTint="@color/bg_elevated"
-                android:textColor="@color/text_primary"/>
-            <Button android:id="@+id/btnSpeed2"
-                android:layout_width="0dp" android:layout_height="40dp"
-                android:layout_weight="1" android:text="2x"
-                android:textSize="10sp" android:layout_margin="2dp"
-                android:backgroundTint="@color/bg_elevated"
-                android:textColor="@color/text_primary"/>
-            <Button android:id="@+id/btnSpeed3"
-                android:layout_width="0dp" android:layout_height="40dp"
-                android:layout_weight="1" android:text="3x"
-                android:textSize="10sp" android:layout_margin="2dp"
-                android:backgroundTint="@color/bg_elevated"
-                android:textColor="@color/text_primary"/>
-        </LinearLayout>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSpeedDone"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="12dp"
-            android:text="Done"
-            style="@style/VexoButton"/>
-    </LinearLayout>
-
-    <!-- Volume Panel -->
-    <LinearLayout
-        android:id="@+id/volumePanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone">
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Volume"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp" android:textStyle="bold"/>
-        <SeekBar android:id="@+id/seekVolume"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:max="100" android:progress="100"
-            android:progressTint="@color/vexo_green"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnVolumeDone"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:layout_marginTop="12dp"
-            android:text="Done"
-            style="@style/VexoButton"/>
-    </LinearLayout>
-
-    <!-- Audio Panel -->
-    <LinearLayout
-        android:id="@+id/audioPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="20dp"
-        android:visibility="gone">
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🎵  Add Music"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            android:padding="12dp"
-            android:background="@drawable/bg_card"/>
-    </LinearLayout>
-
-    <!-- Text Panel -->
-    <LinearLayout
-        android:id="@+id/textPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone">
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etTextInput"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Type something..."
-            android:textColor="@color/text_primary"/>
-    </LinearLayout>
-
-    <!-- Filters Panel -->
-    <HorizontalScrollView
-        android:id="@+id/filtersPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:scrollbars="none"
-        android:visibility="gone">
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="12dp">
-            <TextView android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:text="None"
-                android:textColor="@color/text_primary"
-                android:layout_marginEnd="8dp"/>
-            <TextView android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:gravity="center"
-                android:background="@drawable/bg_gradient"
-                android:text="Cinema"
-                android:textColor="@color/text_primary"
-                android:layout_marginEnd="8dp"/>
-            <TextView android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:text="Warm"
-                android:textColor="@color/text_primary"
-                android:layout_marginEnd="8dp"/>
-            <TextView android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:text="Cool"
-                android:textColor="@color/text_primary"
-                android:layout_marginEnd="8dp"/>
-            <TextView android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:text="B&amp;W"
-                android:textColor="@color/text_primary"/>
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <!-- Adjust Panel -->
-    <LinearLayout
-        android:id="@+id/adjustPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:orientation="vertical"
-        android:padding="16dp"
-        android:visibility="gone">
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Brightness"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"/>
-        <SeekBar android:id="@+id/seekBrightness"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" android:progress="50"
-            android:progressTint="@color/vexo_purple"/>
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Contrast"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"/>
-        <SeekBar android:id="@+id/seekContrast"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" android:progress="50"
-            android:progressTint="@color/vexo_purple"/>
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="Saturation"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"/>
-        <SeekBar android:id="@+id/seekSaturation"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100" android:progress="50"
-            android:progressTint="@color/vexo_purple"/>
-    </LinearLayout>
-
-    <!-- Export Panel -->
-    <LinearLayout
-        android:id="@+id/exportPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:orientation="vertical"
-        android:padding="20dp"
-        android:visibility="gone">
-        <TextView android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Export Video"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp" android:textStyle="bold"
-            android:layout_marginBottom="16dp"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnExport480"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="8dp"
-            android:text="480p — Standard"
-            style="@style/VexoButtonOutline"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnExport720"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="8dp"
-            android:text="720p — HD"
-            style="@style/VexoButtonOutline"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnExport1080"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="12dp"
-            android:text="1080p — Full HD"
-            style="@style/VexoButton"/>
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnExportCancel"
-            android:layout_width="match_parent"
-            android:layout_height="44dp"
-            android:backgroundTint="@color/bg_elevated"
-            android:text="Cancel"
-            android:textColor="@color/text_secondary"
-            style="@style/VexoButton"/>
-    </LinearLayout>
-
-    <!-- Progress -->
-    <LinearLayout
-        android:id="@+id/progressOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="20dp"
-        android:visibility="gone">
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Processing..."
-            android:textColor="@color/text_primary"
-            android:textSize="14sp"/>
-    </LinearLayout>
-
-    <!-- Share Bar -->
-    <LinearLayout
-        android:id="@+id/shareBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:visibility="gone">
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnShareExported"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="Share Video"
-            style="@style/VexoButton"/>
-    </LinearLayout>
+    </ScrollView>
 
     <!-- Bottom Tabs -->
     <HorizontalScrollView
         android:layout_width="match_parent"
-        android:layout_height="68dp"
+        android:layout_height="64dp"
         android:background="@color/bg_editor"
         android:scrollbars="none">
 
@@ -652,138 +1102,148 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="8dp">
+            android:paddingHorizontal="4dp">
 
             <LinearLayout android:id="@+id/tabAudio"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🎵" android:textSize="20sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Audio" android:textSize="10sp"
+                    android:text="Audio" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <LinearLayout android:id="@+id/tabText"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="T" android:textSize="20sp"
+                    android:text="T" android:textSize="22sp"
                     android:textColor="@color/text_primary"
                     android:textStyle="bold"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Text" android:textSize="10sp"
+                    android:text="Text" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <LinearLayout android:id="@+id/tabFilters"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🎨" android:textSize="20sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Filters" android:textSize="10sp"
+                    android:text="Filters" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <LinearLayout android:id="@+id/tabEffects"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="✨" android:textSize="20sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Effects" android:textSize="10sp"
+                    android:text="Effects" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <LinearLayout android:id="@+id/tabAdjust"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="⚙" android:textSize="20sp"
                     android:textColor="@color/text_primary"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Adjust" android:textSize="10sp"
+                    android:text="Adjust" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <LinearLayout android:id="@+id/tabTransitions"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="🔀" android:textSize="20sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Transition" android:textSize="9sp"
-                    android:textColor="@color/text_secondary"/>
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/tabOverlay"
-                android:layout_width="62dp" android:layout_height="58dp"
-                android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="🖼" android:textSize="20sp"/>
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Overlay" android:textSize="10sp"
+                    android:text="Trans." android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <LinearLayout android:id="@+id/tabCanvas"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="📐" android:textSize="20sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Canvas" android:textSize="10sp"
+                    android:text="Canvas" android:textSize="9sp"
+                    android:textColor="@color/text_secondary"/>
+            </LinearLayout>
+
+            <LinearLayout android:id="@+id/tabOverlay"
+                android:layout_width="60dp" android:layout_height="56dp"
+                android:gravity="center" android:orientation="vertical"
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🖼" android:textSize="20sp"/>
+                <TextView android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Overlay" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <LinearLayout android:id="@+id/tabStickers"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="😊" android:textSize="20sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Stickers" android:textSize="10sp"
+                    android:text="Stickers" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 
             <LinearLayout android:id="@+id/tabCaptions"
-                android:layout_width="62dp" android:layout_height="58dp"
+                android:layout_width="60dp" android:layout_height="56dp"
                 android:gravity="center" android:orientation="vertical"
-                android:clickable="true" android:focusable="true">
+                android:clickable="true" android:focusable="true"
+                android:layout_marginHorizontal="2dp">
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="💬" android:textSize="20sp"/>
                 <TextView android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Captions" android:textSize="10sp"
+                    android:text="Captions" android:textSize="9sp"
                     android:textColor="@color/text_secondary"/>
             </LinearLayout>
 

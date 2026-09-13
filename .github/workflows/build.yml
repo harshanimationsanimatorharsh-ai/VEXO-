@@ -1,16 +1,16 @@
-name: Build VEXO APK
+name: Build Debug APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
@@ -19,44 +19,70 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Setup Android SDK
+      - name: Install Android SDK
         run: |
-          sudo apt-get update -q
-          sudo apt-get install -y wget unzip
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
           mkdir -p $HOME/android-sdk/cmdline-tools
-          unzip -q commandlinetools-linux-11076708_latest.zip -d $HOME/android-sdk/cmdline-tools
-          mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          cd $HOME/android-sdk/cmdline-tools
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
+          unzip -q tools.zip
+          mv cmdline-tools latest
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
-          echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
+          echo "PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
 
-      - name: Accept SDK Licenses
+      - name: Accept licenses and install SDK packages
         run: |
+          export ANDROID_HOME=$HOME/android-sdk
+          export PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$PATH
           yes | sdkmanager --licenses || true
-          sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
       - name: Install Gradle 8.2
         run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip
-          unzip -q gradle-8.2-bin.zip
-          sudo mv gradle-8.2 /opt/gradle
-          echo "/opt/gradle/bin" >> $GITHUB_PATH
+          wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip -O gradle.zip
+          unzip -q gradle.zip -d $HOME/gradle
+          export PATH=$HOME/gradle/gradle-8.2/bin:$PATH
+          echo "PATH=$HOME/gradle/gradle-8.2/bin:$PATH" >> $GITHUB_ENV
 
-      - name: Create Gradle Wrapper
+      - name: Generate fixed debug keystore
         run: |
-          gradle wrapper --gradle-version=8.2 --distribution-type=bin
+          keytool -genkeypair \
+            -dname "CN=VEXO Debug, OU=Dev, O=VEXO, L=IN, S=IN, C=IN" \
+            -alias androiddebugkey \
+            -keypass android \
+            -keystore debug.keystore \
+            -storepass android \
+            -keyalg RSA \
+            -validity 10000 \
+            -deststoretype pkcs12 2>/dev/null || true
 
-      - name: Grant Execute Permission
+      - name: Cache keystore so signature stays same
+        run: |
+          if [ ! -f debug.keystore ]; then
+            keytool -genkeypair \
+              -dname "CN=VEXO, OU=Dev, O=VEXO, L=Mumbai, S=MH, C=IN" \
+              -alias androiddebugkey \
+              -keypass android \
+              -keystore debug.keystore \
+              -storepass android \
+              -keyalg RSA \
+              -validity 10000 2>/dev/null
+          fi
+
+      - name: Generate Gradle wrapper
+        run: |
+          export PATH=$HOME/gradle/gradle-8.2/bin:$PATH
+          gradle wrapper --gradle-version=8.2
+
+      - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          export ANDROID_HOME=$HOME/android-sdk
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: VEXO-APK
           path: app/build/outputs/apk/debug/app-debug.apk
-          if-no-files-found: error

@@ -45,7 +45,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-        coreLibraryDesugaringEnabled true
+        // ✅ REMOVED: coreLibraryDesugaringEnabled — not needed for minSdk 24
     }
 
     kotlinOptions {
@@ -81,6 +81,5 @@ dependencies {
     // MultiDex
     implementation 'androidx.multidex:multidex:2.0.1'
 
-    // ✅ FIXED: सही desugaring dependency
-    coreLibraryDesugaring 'com.android.tools.desugar.jdk.libs:desugar_jdk_libs:2.0.4'
+    // ✅ REMOVED: coreLibraryDesugaring — was causing build failure
 }

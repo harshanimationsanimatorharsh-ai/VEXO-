@@ -4,108 +4,105 @@ import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.net.Uri
 import android.os.Bundle
-import android.widget.SeekBar
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
-import com.vexo.app.databinding.ActivityPhotoEditorBinding
+import com.vexo.app.R
 
 class PhotoEditorActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityPhotoEditorBinding
+    private lateinit var imageView: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPhotoEditorBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_photo_editor)
 
-        val uri = intent.getParcelableExtra<Uri>("photo_uri")
-        uri?.let { Glide.with(this).load(it).into(binding.ivPhoto) }
+        imageView = findViewById(R.id.ivPhoto)
+        val btnBack       = findViewById<ImageButton>(R.id.btnBack)
+        val btnOriginal   = findViewById<Button>(R.id.btnFilterOriginal)
+        val btnBW         = findViewById<Button>(R.id.btnFilterBW)
+        val btnWarm       = findViewById<Button>(R.id.btnFilterWarm)
+        val btnCool       = findViewById<Button>(R.id.btnFilterCool)
+        val btnVintage    = findViewById<Button>(R.id.btnFilterVintage)
+        val sbBrightness  = findViewById<SeekBar>(R.id.sbBrightness)
+        val sbSaturation  = findViewById<SeekBar>(R.id.sbSaturation)
 
-        binding.ivBack.setOnClickListener { finish() }
-
-        setupFilters()
-        setupAdjust()
-
-        binding.btnSave.setOnClickListener {
-            Toast.makeText(this, "✅ Saved!", Toast.LENGTH_SHORT).show()
+        val uriString = intent.getStringExtra("photo_uri")
+        if (uriString != null) {
+            Glide.with(this).load(Uri.parse(uriString)).into(imageView)
         }
-    }
 
-    private fun setupFilters() {
-        binding.btnFilterNone.setOnClickListener {
-            binding.ivPhoto.clearColorFilter()
-        }
-        binding.btnFilterBW.setOnClickListener {
-            binding.ivPhoto.colorFilter = ColorMatrixColorFilter(
-                ColorMatrix().apply { setSaturation(0f) })
-        }
-        binding.btnFilterWarm.setOnClickListener {
-            binding.ivPhoto.colorFilter = ColorMatrixColorFilter(
-                ColorMatrix().apply {
-                    set(floatArrayOf(
-                        1.2f,0f,0f,0f,20f,
-                        0f,1f,0f,0f,0f,
-                        0f,0f,0.8f,0f,-20f,
-                        0f,0f,0f,1f,0f))
-                })
-        }
-        binding.btnFilterCool.setOnClickListener {
-            binding.ivPhoto.colorFilter = ColorMatrixColorFilter(
-                ColorMatrix().apply {
-                    set(floatArrayOf(
-                        0.8f,0f,0f,0f,-20f,
-                        0f,1f,0f,0f,0f,
-                        0f,0f,1.2f,0f,20f,
-                        0f,0f,0f,1f,0f))
-                })
-        }
-        binding.btnFilterVintage.setOnClickListener {
-            binding.ivPhoto.colorFilter = ColorMatrixColorFilter(
-                ColorMatrix().apply {
-                    set(floatArrayOf(
-                        0.9f,0.1f,0f,0f,20f,
-                        0.1f,0.8f,0.1f,0f,10f,
-                        0f,0.1f,0.7f,0f,-10f,
-                        0f,0f,0f,1f,0f))
-                })
-        }
-    }
+        btnBack?.setOnClickListener { finish() }
 
-    private fun setupAdjust() {
-        binding.seekBrightness.setOnSeekBarChangeListener(
-            object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(
-                    sb: SeekBar?, p: Int, f: Boolean) {
-                    val b = (p - 50) / 50f * 255
-                    binding.ivPhoto.colorFilter = ColorMatrixColorFilter(
-                        ColorMatrix().apply {
-                            set(floatArrayOf(
-                                1f,0f,0f,0f,b,
-                                0f,1f,0f,0f,b,
-                                0f,0f,1f,0f,b,
-                                0f,0f,0f,1f,0f))
-                        })
-                }
-                override fun onStartTrackingTouch(sb: SeekBar?) {}
-                override fun onStopTrackingTouch(sb: SeekBar?) {}
-            })
-
-        binding.seekSaturation.setOnSeekBarChangeListener(
-            object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(
-                    sb: SeekBar?, p: Int, f: Boolean) {
-                    binding.ivPhoto.colorFilter = ColorMatrixColorFilter(
-                        ColorMatrix().apply { setSaturation(p / 50f) })
-                }
-                override fun onStartTrackingTouch(sb: SeekBar?) {}
-                override fun onStopTrackingTouch(sb: SeekBar?) {}
-            })
-
-        binding.btnReset.setOnClickListener {
-            binding.ivPhoto.clearColorFilter()
-            binding.seekBrightness.progress = 50
-            binding.seekSaturation.progress = 50
+        btnOriginal?.setOnClickListener {
+            imageView.colorFilter = null
+            Toast.makeText(this, "Original", Toast.LENGTH_SHORT).show()
         }
+
+        btnBW?.setOnClickListener {
+            val cm = ColorMatrix()
+            cm.setSaturation(0f)
+            imageView.colorFilter = ColorMatrixColorFilter(cm)
+            Toast.makeText(this, "B&W", Toast.LENGTH_SHORT).show()
+        }
+
+        btnWarm?.setOnClickListener {
+            val cm = ColorMatrix(floatArrayOf(
+                1.2f, 0f, 0f, 0f, 20f,
+                0f, 1.0f, 0f, 0f, 10f,
+                0f, 0f, 0.8f, 0f, -10f,
+                0f, 0f, 0f, 1f, 0f
+            ))
+            imageView.colorFilter = ColorMatrixColorFilter(cm)
+            Toast.makeText(this, "Warm", Toast.LENGTH_SHORT).show()
+        }
+
+        btnCool?.setOnClickListener {
+            val cm = ColorMatrix(floatArrayOf(
+                0.9f, 0f, 0f, 0f, -10f,
+                0f, 0.95f, 0f, 0f, 0f,
+                0f, 0f, 1.2f, 0f, 20f,
+                0f, 0f, 0f, 1f, 0f
+            ))
+            imageView.colorFilter = ColorMatrixColorFilter(cm)
+            Toast.makeText(this, "Cool", Toast.LENGTH_SHORT).show()
+        }
+
+        btnVintage?.setOnClickListener {
+            val cm = ColorMatrix(floatArrayOf(
+                0.9f, 0.05f, 0f, 0f, 20f,
+                0.05f, 0.85f, 0f, 0f, 10f,
+                0f, 0f, 0.7f, 0f, 20f,
+                0f, 0f, 0f, 1f, 0f
+            ))
+            imageView.colorFilter = ColorMatrixColorFilter(cm)
+            Toast.makeText(this, "Vintage", Toast.LENGTH_SHORT).show()
+        }
+
+        sbBrightness?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, v: Int, f: Boolean) {
+                val b = (v - 50) * 2f
+                val cm = ColorMatrix(floatArrayOf(
+                    1f, 0f, 0f, 0f, b,
+                    0f, 1f, 0f, 0f, b,
+                    0f, 0f, 1f, 0f, b,
+                    0f, 0f, 0f, 1f, 0f
+                ))
+                imageView.colorFilter = ColorMatrixColorFilter(cm)
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
+
+        sbSaturation?.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(sb: SeekBar?, v: Int, f: Boolean) {
+                val sat = v / 50f
+                val cm = ColorMatrix()
+                cm.setSaturation(sat)
+                imageView.colorFilter = ColorMatrixColorFilter(cm)
+            }
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
+        })
     }
 }

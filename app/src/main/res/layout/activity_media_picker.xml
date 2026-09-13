@@ -1,67 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_primary"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/bg_primary">
 
+    <!-- Toolbar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:background="@color/bg_secondary"
-        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingHorizontal="16dp">
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="@color/bg_primary">
 
-        <ImageView
-            android:id="@+id/ivBack"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:padding="6dp"
-            android:src="@android:drawable/ic_media_previous"/>
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="#FFFFFF" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
             android:layout_weight="1"
             android:text="Select Media"
-            android:textColor="@color/text_primary"
+            android:textColor="#FFFFFF"
             android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:textStyle="bold"
+            android:gravity="center" />
 
-        <TextView
-            android:id="@+id/btnSelectAll"
+        <Button
+            android:id="@+id/btnDone"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="All"
-            android:textColor="@color/vexo_purple"
-            android:textSize="14sp"/>
-
+            android:layout_height="36dp"
+            android:text="Done (0)"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:backgroundTint="@color/vexo_purple" />
     </LinearLayout>
 
+    <!-- Grid -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMedia"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:background="@color/bg_secondary"
-        android:gravity="center"
-        android:paddingHorizontal="16dp">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAdd"
-            android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="Add"
-            style="@style/VexoButton"/>
-
-    </LinearLayout>
+        android:layout_height="match_parent" />
 
 </LinearLayout>

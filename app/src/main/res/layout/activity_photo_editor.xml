@@ -1,183 +1,164 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_editor"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@color/bg_editor">
 
+    <!-- Toolbar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:gravity="center_vertical"
+        android:layout_height="56dp"
         android:orientation="horizontal"
-        android:paddingHorizontal="12dp">
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="@color/bg_primary">
 
-        <ImageView
-            android:id="@+id/ivBack"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:padding="6dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"/>
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:tint="#FFFFFF" />
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Edit Photo"
-            android:textColor="@color/text_primary"
-            android:textSize="17sp"
-            android:textStyle="bold"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSave"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:text="Save"
-            android:textSize="13sp"
-            style="@style/VexoButton"/>
-
+            android:text="Photo Editor"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center" />
     </LinearLayout>
 
+    <!-- Photo Preview -->
     <ImageView
         android:id="@+id/ivPhoto"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@color/bg_editor"
-        android:scaleType="fitCenter"/>
+        android:layout_weight="3"
+        android:scaleType="fitCenter"
+        android:background="#000000" />
 
-    <HorizontalScrollView
+    <!-- Controls -->
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="@color/bg_secondary"
-        android:scrollbars="none">
+        android:layout_height="0dp"
+        android:layout_weight="2">
+
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="12dp">
-
-            <LinearLayout android:id="@+id/btnFilterNone"
-                android:layout_width="64dp" android:layout_height="64dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:layout_marginEnd="8dp"
-                android:clickable="true" android:focusable="true">
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="None"
-                    android:textColor="@color/text_primary"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/btnFilterBW"
-                android:layout_width="64dp" android:layout_height="64dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:layout_marginEnd="8dp"
-                android:clickable="true" android:focusable="true">
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="B&amp;W"
-                    android:textColor="@color/text_primary"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/btnFilterWarm"
-                android:layout_width="64dp" android:layout_height="64dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:layout_marginEnd="8dp"
-                android:clickable="true" android:focusable="true">
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Warm"
-                    android:textColor="@color/text_primary"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/btnFilterCool"
-                android:layout_width="64dp" android:layout_height="64dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:layout_marginEnd="8dp"
-                android:clickable="true" android:focusable="true">
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Cool"
-                    android:textColor="@color/text_primary"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/btnFilterVintage"
-                android:layout_width="64dp" android:layout_height="64dp"
-                android:gravity="center"
-                android:background="@drawable/bg_card"
-                android:clickable="true" android:focusable="true">
-                <TextView android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Vintage"
-                    android:textColor="@color/text_primary"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_secondary"
-        android:orientation="vertical"
-        android:padding="16dp">
-
-        <LinearLayout android:layout_width="match_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-            <TextView android:layout_width="80dp"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Filters -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Filters"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:layout_marginBottom="8dp" />
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnFilterOriginal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Original"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="@color/vexo_purple"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/btnFilterBW"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="B&amp;W"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#444444"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/btnFilterWarm"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Warm"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#FF6600"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/btnFilterCool"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Cool"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#0066FF"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/btnFilterVintage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:text="Vintage"
+                        android:textColor="#FFFFFF"
+                        android:backgroundTint="#886644" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Brightness -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Brightness"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"/>
-            <SeekBar android:id="@+id/seekBrightness"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:max="100" android:progress="50"
-                android:progressTint="@color/vexo_purple"/>
-        </LinearLayout>
+                android:textColor="#CCCCCC"
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
 
-        <LinearLayout android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-            <TextView android:layout_width="80dp"
+            <SeekBar
+                android:id="@+id/sbBrightness"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="50"
+                android:progressTint="@color/vexo_purple"
+                android:thumbTint="@color/vexo_purple"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Saturation -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Saturation"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"/>
-            <SeekBar android:id="@+id/seekSaturation"
-                android:layout_width="0dp"
+                android:textColor="#CCCCCC"
+                android:textSize="12sp"
+                android:layout_marginBottom="4dp" />
+
+            <SeekBar
+                android:id="@+id/sbSaturation"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:max="100" android:progress="50"
-                android:progressTint="@color/vexo_purple"/>
+                android:max="100"
+                android:progress="50"
+                android:progressTint="@color/vexo_purple"
+                android:thumbTint="@color/vexo_purple" />
+
         </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnReset"
-            android:layout_width="wrap_content"
-            android:layout_height="36dp"
-            android:layout_marginTop="12dp"
-            android:text="Reset"
-            android:textSize="13sp"
-            style="@style/VexoButtonOutline"/>
-
-    </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>

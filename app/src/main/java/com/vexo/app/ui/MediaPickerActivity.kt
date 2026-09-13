@@ -1,7 +1,6 @@
 package com.vexo.app.ui
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -9,199 +8,135 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.vexo.app.databinding.ActivityMediaPickerBinding
-import com.vexo.app.databinding.ItemMediaBinding
+import com.vexo.app.R
 
 class MediaPickerActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMediaPickerBinding
-    private val selected = ArrayList<Uri>()
-    private val allMedia = mutableListOf<Uri>()
+    private val selectedUris = mutableListOf<Uri>()
     private lateinit var adapter: MediaAdapter
-
-    companion object {
-        private const val PERMISSION_REQUEST = 100
-    }
+    private val PERM_CODE = 101
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMediaPickerBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_media_picker)
 
-        adapter = MediaAdapter(allMedia, selected) { updateBtn() }
-        binding.rvMedia.layoutManager = GridLayoutManager(this, 3)
-        binding.rvMedia.adapter = adapter
+        val recyclerView = findViewById<RecyclerView>(R.id.rvMedia)
+        val btnDone      = findViewById<Button>(R.id.btnDone)
+        val btnBack      = findViewById<ImageButton>(R.id.btnBack)
 
-        checkPermissionsAndLoad()
+        btnBack?.setOnClickListener { finish() }
 
-        binding.ivBack.setOnClickListener { finish() }
-
-        binding.btnSelectAll.setOnClickListener {
-            if (selected.size == allMedia.size) {
-                selected.clear()
-            } else {
-                selected.clear()
-                selected.addAll(allMedia)
-            }
-            adapter.notifyDataSetChanged()
-            updateBtn()
+        recyclerView?.layoutManager = GridLayoutManager(this, 3)
+        adapter = MediaAdapter(emptyList()) { uri, selected ->
+            if (selected) selectedUris.add(uri) else selectedUris.remove(uri)
+            btnDone?.text = "Done (${selectedUris.size})"
         }
+        recyclerView?.adapter = adapter
 
-        binding.btnAdd.setOnClickListener {
-            if (selected.isEmpty()) {
-                Toast.makeText(this,
-                    "Select at least 1 media",
-                    Toast.LENGTH_SHORT).show()
+        btnDone?.setOnClickListener {
+            if (selectedUris.isEmpty()) {
+                Toast.makeText(this, "Select at least one media", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            setResult(Activity.RESULT_OK,
-                Intent().putParcelableArrayListExtra(
-                    "selected_media", selected))
+            val intent = Intent(this, EditorActivity::class.java)
+            intent.putStringArrayListExtra("media_uris", ArrayList(selectedUris.map { it.toString() }))
+            startActivity(intent)
             finish()
         }
+
+        checkPermissions()
     }
 
-    private fun checkPermissionsAndLoad() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val imgPerm = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.READ_MEDIA_IMAGES)
-            val vidPerm = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.READ_MEDIA_VIDEO)
-            if (imgPerm != PackageManager.PERMISSION_GRANTED ||
-                vidPerm != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                    arrayOf(
-                        Manifest.permission.READ_MEDIA_IMAGES,
-                        Manifest.permission.READ_MEDIA_VIDEO
-                    ), PERMISSION_REQUEST)
-            } else {
-                loadMedia()
-            }
-        } else {
-            val perm = ContextCompat.checkSelfPermission(
-                this, Manifest.permission.READ_EXTERNAL_STORAGE)
-            if (perm != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
-                    PERMISSION_REQUEST)
-            } else {
-                loadMedia()
-            }
+    private fun checkPermissions() {
+        val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            arrayOf(Manifest.permission.READ_MEDIA_VIDEO, Manifest.permission.READ_MEDIA_IMAGES)
+        else
+            arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
+
+        val missing = perms.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
+
+        if (missing.isEmpty()) loadMedia()
+        else ActivityCompat.requestPermissions(this, missing.toTypedArray(), PERM_CODE)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(
-            requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST) {
-            if (grantResults.isNotEmpty() &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                loadMedia()
-            } else {
-                Toast.makeText(this,
-                    "Permission required to access media",
-                    Toast.LENGTH_LONG).show()
-            }
-        }
+    override fun onRequestPermissionsResult(code: Int, perms: Array<String>, results: IntArray) {
+        super.onRequestPermissionsResult(code, perms, results)
+        if (results.isNotEmpty() && results[0] == PackageManager.PERMISSION_GRANTED) loadMedia()
+        else Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
     }
 
     private fun loadMedia() {
-        allMedia.clear()
-
-        // Load Videos
-        val videoCursor = contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(MediaStore.Video.Media._ID),
-            null, null,
-            MediaStore.Video.Media.DATE_MODIFIED + " DESC"
+        val uris = mutableListOf<Uri>()
+        val projection = arrayOf(MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.MEDIA_TYPE)
+        val selection = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE}, ${MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO})"
+        val cursor = contentResolver.query(
+            MediaStore.Files.getContentUri("external"),
+            projection, selection, null,
+            "${MediaStore.Files.FileColumns.DATE_ADDED} DESC"
         )
-        videoCursor?.use {
-            val idCol = it.getColumnIndexOrThrow(
-                MediaStore.Video.Media._ID)
+        cursor?.use {
+            val idCol = it.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID)
+            val typeCol = it.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
             while (it.moveToNext()) {
                 val id = it.getLong(idCol)
-                allMedia.add(Uri.withAppendedPath(
-                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-                    id.toString()))
+                val type = it.getInt(typeCol)
+                val contentUri = if (type == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO)
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                else
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                uris.add(Uri.withAppendedPath(contentUri, id.toString()))
             }
         }
-
-        // Load Images
-        val imageCursor = contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(MediaStore.Images.Media._ID),
-            null, null,
-            MediaStore.Images.Media.DATE_MODIFIED + " DESC"
-        )
-        imageCursor?.use {
-            val idCol = it.getColumnIndexOrThrow(
-                MediaStore.Images.Media._ID)
-            while (it.moveToNext()) {
-                val id = it.getLong(idCol)
-                allMedia.add(Uri.withAppendedPath(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                    id.toString()))
-            }
-        }
-
-        if (allMedia.isEmpty()) {
-            Toast.makeText(this,
-                "No media found on device",
-                Toast.LENGTH_SHORT).show()
-        }
-
-        adapter.notifyDataSetChanged()
+        adapter.updateData(uris)
     }
 
-    private fun updateBtn() {
-        val n = selected.size
-        binding.btnAdd.text = if (n > 0) "Add ($n)" else "Add"
-    }
-
+    // ── Adapter ───────────────────────────────────────────────────
     inner class MediaAdapter(
-        private val items: List<Uri>,
-        private val sel: ArrayList<Uri>,
-        private val onChange: () -> Unit
+        private var items: List<Uri>,
+        private val onSelect: (Uri, Boolean) -> Unit
     ) : RecyclerView.Adapter<MediaAdapter.VH>() {
 
-        inner class VH(val b: ItemMediaBinding) :
-            RecyclerView.ViewHolder(b.root)
+        private val selected = mutableSetOf<Uri>()
 
-        override fun onCreateViewHolder(p: ViewGroup, t: Int) =
-            VH(ItemMediaBinding.inflate(
-                LayoutInflater.from(p.context), p, false))
+        fun updateData(newItems: List<Uri>) {
+            items = newItems
+            notifyDataSetChanged()
+        }
 
-        override fun onBindViewHolder(h: VH, pos: Int) {
-            val uri = items[pos]
-            Glide.with(h.itemView)
-                .load(uri)
-                .centerCrop()
-                .placeholder(android.R.color.darker_gray)
-                .into(h.b.ivThumbnail)
+        inner class VH(view: View) : RecyclerView.ViewHolder(view) {
+            val image: ImageView = view.findViewById(R.id.ivMedia)
+            val check: ImageView = view.findViewById(R.id.ivCheck)
+        }
 
-            val isSelected = sel.contains(uri)
-            h.b.viewSelected.alpha = if (isSelected) 1f else 0f
-            h.b.tvOrder.text = if (isSelected)
-                (sel.indexOf(uri) + 1).toString() else ""
-            h.b.tvOrder.alpha = if (isSelected) 1f else 0f
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+            val v = LayoutInflater.from(parent.context).inflate(R.layout.item_media, parent, false)
+            return VH(v)
+        }
 
-            h.itemView.setOnClickListener {
-                if (sel.contains(uri)) sel.remove(uri)
-                else sel.add(uri)
-                notifyDataSetChanged()
-                onChange()
+        override fun onBindViewHolder(holder: VH, position: Int) {
+            val uri = items[position]
+            Glide.with(holder.image.context).load(uri).centerCrop().into(holder.image)
+            holder.check.visibility = if (uri in selected) View.VISIBLE else View.GONE
+            holder.itemView.setOnClickListener {
+                if (uri in selected) {
+                    selected.remove(uri)
+                    onSelect(uri, false)
+                } else {
+                    selected.add(uri)
+                    onSelect(uri, true)
+                }
+                notifyItemChanged(position)
             }
         }
 

@@ -10,79 +10,95 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
+
+      # ── Step 1: Code checkout ──────────────────────────────────
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ── Step 2: Java 17 setup ──────────────────────────────────
       - name: Set up JDK 17
         uses: actions/setup-java@v5
         with:
           java-version: '17'
           distribution: 'temurin'
 
+      # ── Step 3: Remove conflicting SDK variables ───────────────
+      - name: Remove conflicting Android SDK paths
+        run: |
+          echo "ANDROID_SDK_ROOT=" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+
+      # ── Step 4: Install Android SDK manually ───────────────────
       - name: Install Android SDK
         run: |
-          mkdir -p $HOME/android-sdk/cmdline-tools
-          cd $HOME/android-sdk/cmdline-tools
+          unset ANDROID_SDK_ROOT
+          export ANDROID_HOME=$HOME/android-sdk
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          cd $ANDROID_HOME/cmdline-tools
           wget -q https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O tools.zip
           unzip -q tools.zip
           mv cmdline-tools latest
-          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
-          echo "PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$HOME/android-sdk/platform-tools:$PATH" >> $GITHUB_ENV
+          rm tools.zip
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
 
-      - name: Accept licenses and install SDK packages
+      # ── Step 5: Accept licenses + install SDK packages ─────────
+      - name: Install SDK packages
         run: |
+          unset ANDROID_SDK_ROOT
           export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$HOME/android-sdk/cmdline-tools/latest/bin:$PATH
-          yes | sdkmanager --licenses || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          yes | sdkmanager --licenses 2>/dev/null || true
+          sdkmanager \
+            "platforms;android-34" \
+            "build-tools;34.0.0" \
+            "platform-tools"
 
-      - name: Install Gradle 8.2
-        run: |
-          wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip -O gradle.zip
-          unzip -q gradle.zip -d $HOME/gradle
-          export PATH=$HOME/gradle/gradle-8.2/bin:$PATH
-          echo "PATH=$HOME/gradle/gradle-8.2/bin:$PATH" >> $GITHUB_ENV
-
-      - name: Generate fixed debug keystore
+      # ── Step 6: Generate fixed debug keystore ──────────────────
+      # Same keystore every time = app updates instead of reinstall
+      - name: Generate debug keystore
         run: |
           keytool -genkeypair \
-            -dname "CN=VEXO Debug, OU=Dev, O=VEXO, L=IN, S=IN, C=IN" \
+            -dname "CN=VEXO, OU=Dev, O=VEXO, L=Mumbai, S=MH, C=IN" \
             -alias androiddebugkey \
             -keypass android \
-            -keystore debug.keystore \
+            -keystore "$GITHUB_WORKSPACE/debug.keystore" \
             -storepass android \
             -keyalg RSA \
+            -keysize 2048 \
             -validity 10000 \
-            -deststoretype pkcs12 2>/dev/null || true
+            -storetype pkcs12 2>/dev/null || true
 
-      - name: Cache keystore so signature stays same
+      # ── Step 7: Install Gradle 8.2 ────────────────────────────
+      - name: Install Gradle 8.2
         run: |
-          if [ ! -f debug.keystore ]; then
-            keytool -genkeypair \
-              -dname "CN=VEXO, OU=Dev, O=VEXO, L=Mumbai, S=MH, C=IN" \
-              -alias androiddebugkey \
-              -keypass android \
-              -keystore debug.keystore \
-              -storepass android \
-              -keyalg RSA \
-              -validity 10000 2>/dev/null
-          fi
+          wget -q https://services.gradle.org/distributions/gradle-8.2-bin.zip -O /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d $HOME/gradle-dist
+          echo "$HOME/gradle-dist/gradle-8.2/bin" >> $GITHUB_PATH
 
-      - name: Generate Gradle wrapper
+      # ── Step 8: Create Gradle wrapper ─────────────────────────
+      - name: Create Gradle wrapper
         run: |
-          export PATH=$HOME/gradle/gradle-8.2/bin:$PATH
-          gradle wrapper --gradle-version=8.2
+          export PATH=$HOME/gradle-dist/gradle-8.2/bin:$PATH
+          gradle wrapper --gradle-version=8.2 --distribution-type=bin
 
+      # ── Step 9: Make gradlew executable ───────────────────────
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      # ── Step 10: Build APK ────────────────────────────────────
       - name: Build Debug APK
         run: |
+          unset ANDROID_SDK_ROOT
           export ANDROID_HOME=$HOME/android-sdk
-          ./gradlew assembleDebug --stacktrace
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$PATH
+          export PATH=$ANDROID_HOME/platform-tools:$PATH
+          ./gradlew assembleDebug --stacktrace --no-daemon
 
+      # ── Step 11: Upload APK artifact ──────────────────────────
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: VEXO-APK
           path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error

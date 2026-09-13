@@ -717,4 +717,148 @@ class EditorActivity : AppCompatActivity() {
         player?.release()
         player = null
     }
-}
+    // ─── Filters Setup ─────────────────────────────────────
+    private fun setupAllFilters() {
+        val filters = mapOf(
+            binding.f1 to Pair("Cinematic", FilterUtils.cinematic()),
+            binding.f2 to Pair("HDR", FilterUtils.hdr()),
+            binding.f3 to Pair("Aesthetic", FilterUtils.aesthetic()),
+            binding.f4 to Pair("Warm Glow", FilterUtils.warmGlow()),
+            binding.f5 to Pair("Cool Tone", FilterUtils.coolTone()),
+            binding.f6 to Pair("Vintage Film", FilterUtils.vintageFilm()),
+            binding.f7 to Pair("Retro", FilterUtils.retro()),
+            binding.f8 to Pair("Y2K", FilterUtils.y2k()),
+            binding.f9 to Pair("VHS", FilterUtils.vhs()),
+            binding.f10 to Pair("B&W Noir", FilterUtils.bwNoir()),
+            binding.f11 to Pair("Glamour", FilterUtils.glamour()),
+            binding.f12 to Pair("Night Scene", FilterUtils.nightScene()),
+            binding.f13 to Pair("Movie", FilterUtils.movie()),
+            binding.f14 to Pair("Colorist", FilterUtils.colorist()),
+            binding.f15 to Pair("Neon", FilterUtils.neon()),
+            binding.f16 to Pair("Dreamy", FilterUtils.dreamy()),
+            binding.f17 to Pair("Dark Mood", FilterUtils.darkMood()),
+            binding.f18 to Pair("Faded Film", FilterUtils.fadedFilm()),
+            binding.f19 to Pair("Cartoon AI", FilterUtils.cartoonAi()),
+            binding.f20 to Pair("Barbie Pink", FilterUtils.barbiePink())
+        )
+
+        filters.forEach { (btn, data) ->
+            btn.setOnClickListener {
+                binding.playerView.colorFilter =
+                    android.graphics.ColorMatrixColorFilter(data.second)
+                binding.tvFilterActive.text = "✅ ${data.first}"
+                Toast.makeText(this, "${data.first} Applied", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    // ─── Effects Setup ─────────────────────────────────────
+    private fun setupAllEffects() {
+        binding.e1.setOnClickListener { EffectUtils.applyGlow(binding.playerView); toast("Glow") }
+        binding.e2.setOnClickListener { EffectUtils.applyMotionBlur(binding.playerView); toast("Motion Blur") }
+        binding.e3.setOnClickListener { EffectUtils.applyZoom(binding.playerView); toast("Zoom") }
+        binding.e4.setOnClickListener { EffectUtils.apply3DZoom(binding.playerView); toast("3D Zoom") }
+        binding.e5.setOnClickListener { EffectUtils.applyShake(binding.playerView); toast("Shake") }
+        binding.e6.setOnClickListener { EffectUtils.applyFlash(binding.effectOverlay); toast("Flash") }
+        binding.e7.setOnClickListener { EffectUtils.applyGlitch(binding.playerView); toast("Glitch") }
+        binding.e8.setOnClickListener { EffectUtils.applyRGBSplit(binding.playerView); toast("RGB Split") }
+        binding.e9.setOnClickListener { EffectUtils.applyChromaticAberration(binding.playerView); toast("Chromatic") }
+        binding.e10.setOnClickListener { EffectUtils.applyLensFlare(binding.effectOverlay); toast("Lens Flare") }
+        binding.e11.setOnClickListener { EffectUtils.applyLightLeak(binding.effectOverlay); toast("Light Leak") }
+        binding.e12.setOnClickListener { EffectUtils.applyFilmGrain(binding.playerView); toast("Film Grain") }
+        binding.e13.setOnClickListener { EffectUtils.applyVignette(binding.effectOverlay); toast("Vignette") }
+        binding.e14.setOnClickListener { EffectUtils.applyBlur(binding.playerView); toast("Blur") }
+        binding.e15.setOnClickListener { EffectUtils.applyPixelate(binding.playerView); toast("Pixelate") }
+        binding.e16.setOnClickListener { EffectUtils.applyNoise(binding.playerView); toast("Noise") }
+        binding.e17.setOnClickListener { EffectUtils.applySmoke(binding.effectOverlay); toast("Smoke") }
+        binding.e18.setOnClickListener { EffectUtils.applyFire(binding.effectOverlay); toast("Fire") }
+        binding.e19.setOnClickListener { EffectUtils.applySpark(binding.playerView); toast("Spark") }
+        binding.e20.setOnClickListener { EffectUtils.applyAura(binding.playerView); toast("Aura") }
+    }
+
+    // ─── Animations Setup ──────────────────────────────────
+    private fun setupAllAnimations() {
+        binding.a1.setOnClickListener { EffectUtils.animFadeIn(binding.playerView); toast("Fade In") }
+        binding.a2.setOnClickListener { EffectUtils.animFadeOut(binding.playerView); toast("Fade Out") }
+        binding.a3.setOnClickListener { EffectUtils.animZoomIn(binding.playerView); toast("Zoom In") }
+        binding.a4.setOnClickListener { EffectUtils.animZoomOut(binding.playerView); toast("Zoom Out") }
+        binding.a5.setOnClickListener { EffectUtils.animPopUp(binding.playerView); toast("Pop Up") }
+        binding.a6.setOnClickListener { EffectUtils.animBounce(binding.playerView); toast("Bounce") }
+        binding.a7.setOnClickListener { EffectUtils.animSlideLeft(binding.playerView); toast("Slide Left") }
+        binding.a8.setOnClickListener { EffectUtils.animSlideRight(binding.playerView); toast("Slide Right") }
+        binding.a9.setOnClickListener { EffectUtils.animSlideUp(binding.playerView); toast("Slide Up") }
+        binding.a10.setOnClickListener { EffectUtils.animSlideDown(binding.playerView); toast("Slide Down") }
+        binding.a11.setOnClickListener { EffectUtils.animSpin(binding.playerView); toast("Spin") }
+        binding.a12.setOnClickListener { EffectUtils.animSwing(binding.playerView); toast("Swing") }
+        binding.a13.setOnClickListener { EffectUtils.animShake(binding.playerView); toast("Shake") }
+        binding.a14.setOnClickListener { EffectUtils.animWobble(binding.playerView); toast("Wobble") }
+        binding.a15.setOnClickListener { EffectUtils.animPulse(binding.playerView); toast("Pulse") }
+        binding.a16.setOnClickListener { EffectUtils.animFloat(binding.playerView); toast("Float") }
+        binding.a17.setOnClickListener { animTypewriter(); toast("Typewriter") }
+        binding.a18.setOnClickListener { EffectUtils.animElastic(binding.playerView); toast("Elastic") }
+        binding.a19.setOnClickListener { EffectUtils.animFlip(binding.playerView); toast("Flip") }
+        binding.a20.setOnClickListener { EffectUtils.anim3DRotate(binding.playerView); toast("3D Rotate") }
+    }
+
+    // ─── Video Effects Setup ────────────────────────────────
+    private fun setupAllVideoEffects() {
+        binding.ve1.setOnClickListener { EffectUtils.applyVelocity(binding.playerView); toast("Velocity") }
+        binding.ve2.setOnClickListener { setSpeed(0.25f); toast("Slow Motion 0.25x") }
+        binding.ve3.setOnClickListener { applySpeedRamp(); toast("Speed Ramp") }
+        binding.ve4.setOnClickListener { EffectUtils.applyBeatShake(binding.playerView); toast("Beat Shake") }
+        binding.ve5.setOnClickListener { EffectUtils.applyFlashBeat(binding.effectOverlay); toast("Flash Beat") }
+        binding.ve6.setOnClickListener { EffectUtils.applyGlitchTransition(binding.playerView); toast("Glitch Transition") }
+        binding.ve7.setOnClickListener { EffectUtils.applyRGBGlitch(binding.playerView); toast("RGB Glitch") }
+        binding.ve8.setOnClickListener { EffectUtils.applyMotionTrail(binding.playerView); toast("Motion Trail") }
+        binding.ve9.setOnClickListener { EffectUtils.applyCameraShake(binding.playerView); toast("Camera Shake") }
+        binding.ve10.setOnClickListener { EffectUtils.applyDynamicZoom(binding.playerView); toast("Dynamic Zoom") }
+        binding.ve11.setOnClickListener { EffectUtils.applySpinTransition(binding.playerView); toast("Spin Transition") }
+        binding.ve12.setOnClickListener { EffectUtils.applyWhipPan(binding.playerView); toast("Whip Pan") }
+        binding.ve13.setOnClickListener { EffectUtils.applyLightSweep(binding.effectOverlay); toast("Light Sweep") }
+        binding.ve14.setOnClickListener { EffectUtils.applyLensFlare(binding.effectOverlay); toast("Lens Flare") }
+        binding.ve15.setOnClickListener { EffectUtils.applyFilmBurn(binding.effectOverlay); toast("Film Burn") }
+        binding.ve16.setOnClickListener { EffectUtils.applyFlashback(binding.playerView); toast("Flashback") }
+        binding.ve17.setOnClickListener { freezeFrame(); toast("Freeze Frame") }
+        binding.ve18.setOnClickListener { EffectUtils.applyEcho(binding.playerView); toast("Echo/Trail") }
+        binding.ve19.setOnClickListener { EffectUtils.applyBlurTransition(binding.playerView); toast("Blur Transition") }
+        binding.ve20.setOnClickListener { EffectUtils.applyParticleBurst(binding.playerView); toast("Particle Burst") }
+    }
+
+    private fun animTypewriter() {
+        val text = binding.tvOverlayText.text.toString()
+        if (text.isEmpty()) {
+            binding.tvOverlayText.text = "VEXO"
+            binding.tvOverlayText.visibility = View.VISIBLE
+        }
+        val full = binding.tvOverlayText.text.toString()
+        binding.tvOverlayText.text = ""
+        binding.tvOverlayText.visibility = View.VISIBLE
+        val handler = android.os.Handler(mainLooper)
+        full.forEachIndexed { i, c ->
+            handler.postDelayed({
+                binding.tvOverlayText.text = full.substring(0, i + 1)
+            }, i * 80L)
+        }
+    }
+
+    private fun applySpeedRamp() {
+        val handler = android.os.Handler(mainLooper)
+        setSpeed(2f)
+        handler.postDelayed({ setSpeed(0.5f) }, 1000)
+        handler.postDelayed({ setSpeed(1f) }, 2000)
+    }
+
+    private fun freezeFrame() {
+        val wasPlaying = player?.isPlaying ?: false
+        player?.pause()
+        Toast.makeText(this, "⏸ Freeze Frame", Toast.LENGTH_SHORT).show()
+        if (wasPlaying) {
+            android.os.Handler(mainLooper).postDelayed({
+                player?.play()
+            }, 2000)
+        }
+    }
+
+    private fun toast(msg: String) {
+        Toast.makeText(this, "✅ $msg", Toast.LENGTH_SHORT).show()
+    }}

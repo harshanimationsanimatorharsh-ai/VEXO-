@@ -4,11 +4,12 @@ import android.net.Uri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import java.util.UUID
 
 class EditorViewModel : ViewModel() {
 
     private val undoRedo = UndoRedoManager()
-    private val _state = MutableLiveData(EditorState())
+    private val _state = MutableLiveData<EditorState>(EditorState())
     val state: LiveData<EditorState> = _state
 
     private val _selectedClipId = MutableLiveData<String?>(null)
@@ -17,7 +18,9 @@ class EditorViewModel : ViewModel() {
     val canUndo: Boolean get() = undoRedo.canUndo
     val canRedo: Boolean get() = undoRedo.canRedo
 
-    private fun current() = _state.value ?: EditorState()
+    private fun current(): EditorState {
+        return _state.value ?: EditorState()
+    }
 
     private fun commit(newState: EditorState) {
         undoRedo.push(current())
@@ -27,16 +30,15 @@ class EditorViewModel : ViewModel() {
     fun addClips(uris: List<Uri>, durations: Map<Uri, Long>) {
         val existing = current().clips.toMutableList()
         for (uri in uris) {
-            val dur = durations[uri] ?: 0L
+            val dur: Long = durations[uri] ?: 0L
             if (dur > 0L) {
-                existing.add(
-                    Clip(
-                        uri = uri,
-                        sourceDurationMs = dur,
-                        trimStartMs = 0L,
-                        trimEndMs = dur
-                    )
+                val clip = Clip(
+                    uri = uri,
+                    sourceDurationMs = dur,
+                    trimStartMs = 0L,
+                    trimEndMs = dur
                 )
+                existing.add(clip)
             }
         }
         commit(current().withClips(existing))
@@ -47,31 +49,41 @@ class EditorViewModel : ViewModel() {
     }
 
     fun trimClip(clipId: String, newStartMs: Long, newEndMs: Long) {
-        val clips = current().clips.map { c ->
+        val newClips = ArrayList<Clip>()
+        for (c in current().clips) {
             if (c.id == clipId) {
-                c.copy(
-                    trimStartMs = newStartMs.coerceIn(0L, c.sourceDurationMs),
-                    trimEndMs   = newEndMs.coerceIn(newStartMs, c.sourceDurationMs)
-                )
-            } else c
+                val start = newStartMs.coerceIn(0L, c.sourceDurationMs)
+                val end = newEndMs.coerceIn(start, c.sourceDurationMs)
+                newClips.add(c.copy(trimStartMs = start, trimEndMs = end))
+            } else {
+                newClips.add(c)
+            }
         }
-        commit(current().withClips(clips))
+        commit(current().withClips(newClips))
     }
 
     fun splitClip(clipId: String, splitAtMs: Long) {
         val clips = current().clips.toMutableList()
-        val idx = clips.indexOfFirst { it.id == clipId }
+        var idx = -1
+        for (i in clips.indices) {
+            if (clips[i].id == clipId) { idx = i; break }
+        }
         if (idx < 0) return
+
         val clip = clips[idx]
-
         val absoluteSplit = clip.trimStartMs + splitAtMs
-        if (absoluteSplit <= clip.trimStartMs || absoluteSplit >= clip.trimEndMs) return
+        if (absoluteSplit <= clip.trimStartMs) return
+        if (absoluteSplit >= clip.trimEndMs) return
 
-        val left  = clip.copy(trimEndMs = absoluteSplit)
-        val right = clip.copy(
-            id          = java.util.UUID.randomUUID().toString(),
+        val left = clip.copy(trimEndMs = absoluteSplit)
+        val right = Clip(
+            id = UUID.randomUUID().toString(),
+            uri = clip.uri,
+            sourceDurationMs = clip.sourceDurationMs,
             trimStartMs = absoluteSplit,
-            trimEndMs   = clip.trimEndMs
+            trimEndMs = clip.trimEndMs,
+            volume = clip.volume,
+            speed = clip.speed
         )
 
         clips.removeAt(idx)
@@ -81,24 +93,32 @@ class EditorViewModel : ViewModel() {
     }
 
     fun deleteClip(clipId: String) {
-        val clips = current().clips.filter { it.id != clipId }
-        commit(current().withClips(clips))
-        if (_selectedClipId.value == clipId) _selectedClipId.value = null
+        val newClips = current().clips.filter { c -> c.id != clipId }
+        commit(current().withClips(newClips))
+        if (_selectedClipId.value == clipId) {
+            _selectedClipId.value = null
+        }
     }
 
     fun moveClip(fromIndex: Int, toIndex: Int) {
         val clips = current().clips.toMutableList()
-        if (fromIndex !in clips.indices || toIndex !in clips.indices) return
+        if (fromIndex !in clips.indices) return
+        if (toIndex !in clips.indices) return
         val item = clips.removeAt(fromIndex)
         clips.add(toIndex, item)
         commit(current().withClips(clips))
     }
 
     fun setVolume(clipId: String, vol: Float) {
-        val clips = current().clips.map { c ->
-            if (c.id == clipId) c.copy(volume = vol) else c
+        val newClips = ArrayList<Clip>()
+        for (c in current().clips) {
+            if (c.id == clipId) {
+                newClips.add(c.copy(volume = vol))
+            } else {
+                newClips.add(c)
+            }
         }
-        commit(current().withClips(clips))
+        commit(current().withClips(newClips))
     }
 
     fun undo(): Boolean {

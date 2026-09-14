@@ -7,7 +7,8 @@ import android.view.MotionEvent
 import android.view.View
 
 class TimelineView @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null
+    context: Context,
+    attrs: AttributeSet? = null
 ) : View(context, attrs) {
 
     interface Listener {
@@ -23,27 +24,30 @@ class TimelineView @JvmOverloads constructor(
     private var playheadMs: Long = 0L
     private var selectedClipId: String? = null
 
-    private val pxPerMs: Float
-        get() = if (totalDurationMs > 0L) width.toFloat() / totalDurationMs.toFloat() else 1f
+    private fun pxPerMs(): Float {
+        val w = width
+        if (w <= 0 || totalDurationMs <= 0L) return 1.0f
+        return w.toFloat() / totalDurationMs.toFloat()
+    }
 
     private val clipPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
     }
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
-        strokeWidth = 4f
+        strokeWidth = 4.0f
         color = Color.WHITE
     }
     private val playheadPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL_AND_STROKE
-        strokeWidth = 3f
+        strokeWidth = 3.0f
         color = Color.RED
     }
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        textSize = 28f
+        textSize = 28.0f
     }
-    private val trimHandlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         color = Color.parseColor("#CC000000")
     }
@@ -61,15 +65,15 @@ class TimelineView @JvmOverloads constructor(
     private var dragClipId: String? = null
 
     fun setClips(
-        clips: List<Clip>,
+        newClips: List<Clip>,
         totalMs: Long,
-        playheadMs: Long,
+        currentPlayheadMs: Long,
         selectedId: String?
     ) {
-        this.clips          = clips
-        this.totalDurationMs = if (totalMs > 0L) totalMs else 1L
-        this.playheadMs     = playheadMs
-        this.selectedClipId = selectedId
+        clips = newClips
+        totalDurationMs = if (totalMs > 0L) totalMs else 1L
+        playheadMs = currentPlayheadMs
+        selectedClipId = selectedId
         invalidate()
     }
 
@@ -80,93 +84,94 @@ class TimelineView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (width == 0) return
+        if (width == 0 || height == 0) return
 
+        val ppm = pxPerMs()
         val h = height.toFloat()
         val clipH = h * 0.65f
-        val clipTop = (h - clipH) / 2f
+        val clipTop = (h - clipH) / 2.0f
 
-        var offsetPx = 0f
+        var offsetPx = 0.0f
 
         for (i in clips.indices) {
             val clip = clips[i]
-            val clipW = clip.trimmedDurationMs.toFloat() * pxPerMs
-            if (clipW < 1f) { offsetPx += clipW; continue }
+            val clipW: Float = clip.trimmedDurationMs.toFloat() * ppm
+            if (clipW < 1.0f) {
+                offsetPx = offsetPx + clipW
+                continue
+            }
 
-            val color = clipColors[i % clipColors.size]
-            clipPaint.color = color
-
+            clipPaint.color = clipColors[i % clipColors.size]
             val rect = RectF(offsetPx, clipTop, offsetPx + clipW, clipTop + clipH)
-            canvas.drawRoundRect(rect, 10f, 10f, clipPaint)
+            canvas.drawRoundRect(rect, 10.0f, 10.0f, clipPaint)
 
             if (clip.id == selectedClipId) {
-                canvas.drawRoundRect(rect, 10f, 10f, borderPaint)
-                // Left trim handle
+                canvas.drawRoundRect(rect, 10.0f, 10.0f, borderPaint)
+                // Left handle
                 canvas.drawRoundRect(
-                    RectF(offsetPx, clipTop, offsetPx + 18f, clipTop + clipH),
-                    6f, 6f, trimHandlePaint
+                    RectF(offsetPx, clipTop, offsetPx + 18.0f, clipTop + clipH),
+                    6.0f, 6.0f, handlePaint
                 )
-                // Right trim handle
+                // Right handle
                 canvas.drawRoundRect(
-                    RectF(offsetPx + clipW - 18f, clipTop, offsetPx + clipW, clipTop + clipH),
-                    6f, 6f, trimHandlePaint
+                    RectF(offsetPx + clipW - 18.0f, clipTop, offsetPx + clipW, clipTop + clipH),
+                    6.0f, 6.0f, handlePaint
                 )
             }
 
             val label = "Clip ${i + 1}"
             val tw = textPaint.measureText(label)
-            if (tw < clipW - 8f) {
+            if (tw < clipW - 8.0f) {
                 canvas.drawText(
                     label,
-                    offsetPx + (clipW - tw) / 2f,
-                    clipTop + clipH / 2f + 10f,
+                    offsetPx + (clipW - tw) / 2.0f,
+                    clipTop + clipH / 2.0f + 10.0f,
                     textPaint
                 )
             }
 
-            offsetPx += clipW
+            offsetPx = offsetPx + clipW
         }
 
         // Playhead
-        val phX = playheadMs.toFloat() * pxPerMs
-        canvas.drawLine(phX, 0f, phX, h, playheadPaint)
-        val tri = Path().apply {
-            moveTo(phX - 12f, 0f)
-            lineTo(phX + 12f, 0f)
-            lineTo(phX, 24f)
-            close()
-        }
+        val phX: Float = playheadMs.toFloat() * ppm
+        canvas.drawLine(phX, 0.0f, phX, h, playheadPaint)
+        val tri = Path()
+        tri.moveTo(phX - 12.0f, 0.0f)
+        tri.lineTo(phX + 12.0f, 0.0f)
+        tri.lineTo(phX, 24.0f)
+        tri.close()
         canvas.drawPath(tri, playheadPaint)
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val x = event.x
-        val ms = (x / pxPerMs).toLong().coerceIn(0L, totalDurationMs)
+        val ppm = pxPerMs()
+        val ms: Long = (x / ppm).toLong().coerceIn(0L, totalDurationMs)
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
                 dragMode = DragMode.NONE
 
-                // Check trim handles on selected clip
+                // Check trim handles
                 val selId = selectedClipId
                 if (selId != null) {
-                    val selClip = clips.firstOrNull { it.id == selId }
+                    var startOffsetMs = 0L
+                    var selClip: Clip? = null
+                    for (c in clips) {
+                        if (c.id == selId) { selClip = c; break }
+                        startOffsetMs = startOffsetMs + c.trimmedDurationMs
+                    }
                     if (selClip != null) {
-                        var startOffset = 0L
-                        for (c in clips) {
-                            if (c.id == selId) break
-                            startOffset += c.trimmedDurationMs
-                        }
-                        val startPx = startOffset.toFloat() * pxPerMs
-                        val endPx   = startPx + selClip.trimmedDurationMs.toFloat() * pxPerMs
-
-                        if (x >= startPx && x <= startPx + 30f) {
-                            dragMode   = DragMode.TRIM_LEFT
+                        val startPx: Float = startOffsetMs.toFloat() * ppm
+                        val endPx: Float = startPx + selClip.trimmedDurationMs.toFloat() * ppm
+                        if (x >= startPx && x <= startPx + 30.0f) {
+                            dragMode = DragMode.TRIM_LEFT
                             dragClipId = selId
                             return true
                         }
-                        if (x >= endPx - 30f && x <= endPx) {
-                            dragMode   = DragMode.TRIM_RIGHT
+                        if (x >= endPx - 30.0f && x <= endPx) {
+                            dragMode = DragMode.TRIM_RIGHT
                             dragClipId = selId
                             return true
                         }
@@ -174,8 +179,8 @@ class TimelineView @JvmOverloads constructor(
                 }
 
                 // Check playhead
-                val phX = playheadMs.toFloat() * pxPerMs
-                if (Math.abs(x - phX) < 40f) {
+                val phX: Float = playheadMs.toFloat() * ppm
+                if (Math.abs(x - phX) < 40.0f) {
                     dragMode = DragMode.PLAYHEAD
                     return true
                 }
@@ -183,7 +188,7 @@ class TimelineView @JvmOverloads constructor(
                 // Check clip tap
                 var offsetMs = 0L
                 for (clip in clips) {
-                    val endMs = offsetMs + clip.trimmedDurationMs
+                    val endMs: Long = offsetMs + clip.trimmedDurationMs
                     if (ms in offsetMs..endMs) {
                         listener?.onClipSelected(clip.id)
                         return true
@@ -200,27 +205,29 @@ class TimelineView @JvmOverloads constructor(
                         invalidate()
                     }
                     DragMode.TRIM_LEFT -> {
-                        val cid  = dragClipId ?: return false
-                        val clip = clips.firstOrNull { it.id == cid } ?: return false
-                        var startOffset = 0L
+                        val cid = dragClipId ?: return false
+                        var clip: Clip? = null
+                        var startOffsetMs = 0L
                         for (c in clips) {
-                            if (c.id == cid) break
-                            startOffset += c.trimmedDurationMs
+                            if (c.id == cid) { clip = c; break }
+                            startOffsetMs = startOffsetMs + c.trimmedDurationMs
                         }
-                        val posInSource = clip.trimStartMs + (ms - startOffset)
-                        val newStart = posInSource.coerceIn(0L, clip.trimEndMs - 500L)
+                        if (clip == null) return false
+                        val posInSource: Long = clip.trimStartMs + (ms - startOffsetMs)
+                        val newStart: Long = posInSource.coerceIn(0L, clip.trimEndMs - 500L)
                         listener?.onTrimChanged(cid, newStart, clip.trimEndMs)
                     }
                     DragMode.TRIM_RIGHT -> {
-                        val cid  = dragClipId ?: return false
-                        val clip = clips.firstOrNull { it.id == cid } ?: return false
-                        var startOffset = 0L
+                        val cid = dragClipId ?: return false
+                        var clip: Clip? = null
+                        var startOffsetMs = 0L
                         for (c in clips) {
-                            if (c.id == cid) break
-                            startOffset += c.trimmedDurationMs
+                            if (c.id == cid) { clip = c; break }
+                            startOffsetMs = startOffsetMs + c.trimmedDurationMs
                         }
-                        val posInSource = clip.trimStartMs + (ms - startOffset)
-                        val newEnd = posInSource.coerceIn(clip.trimStartMs + 500L, clip.sourceDurationMs)
+                        if (clip == null) return false
+                        val posInSource: Long = clip.trimStartMs + (ms - startOffsetMs)
+                        val newEnd: Long = posInSource.coerceIn(clip.trimStartMs + 500L, clip.sourceDurationMs)
                         listener?.onTrimChanged(cid, clip.trimStartMs, newEnd)
                     }
                     else -> {}
@@ -228,7 +235,7 @@ class TimelineView @JvmOverloads constructor(
             }
 
             MotionEvent.ACTION_UP -> {
-                dragMode   = DragMode.NONE
+                dragMode = DragMode.NONE
                 dragClipId = null
             }
         }

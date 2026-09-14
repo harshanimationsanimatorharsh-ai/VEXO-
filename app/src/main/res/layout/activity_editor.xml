@@ -1,72 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#080810">
 
-    <!-- TOOLBAR -->
-    <LinearLayout
+    <!-- Top Toolbar -->
+    <RelativeLayout
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:background="#0A0A0F">
+        android:layout_height="56dp"
+        android:background="#0E0E1C"
+        android:paddingHorizontal="12dp">
 
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:layout_centerVertical="true"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="#FFFFFF" />
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="VEXO"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:gravity="center" />
-
-        <ImageButton
-            android:id="@+id/btnUndo"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_revert"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="#AAAAAA" />
+            app:tint="@color/white" />
 
-        <ImageButton
-            android:id="@+id/btnRedo"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:src="@android:drawable/ic_menu_send"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="#AAAAAA"
-            android:layout_marginStart="4dp" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btnUndo"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_revert"
+                android:rotation="-90"
+                app:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btnRedo"
+                android:layout_width="48dp"
+                android:layout_height="match_parent"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_revert"
+                android:rotation="90"
+                app:tint="@color/white" />
+        </LinearLayout>
 
         <Button
             android:id="@+id/btnExport"
             android:layout_width="wrap_content"
-            android:layout_height="34dp"
-            android:text="Export"
-            android:textColor="#FFFFFF"
+            android:layout_height="36dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/bg_button"
+            android:text="EXPORT"
+            android:textColor="@color/white"
             android:textSize="12sp"
-            android:backgroundTint="#6C63FF"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+            android:textStyle="bold" />
+    </RelativeLayout>
 
-    <!-- VIDEO PREVIEW -->
+    <!-- Player Preview Area -->
     <FrameLayout
+        android:id="@+id/playerContainer"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="4"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/editorControls"
+        android:layout_below="@id/toolbar"
         android:background="#000000">
 
         <androidx.media3.ui.PlayerView
@@ -78,220 +78,115 @@
 
         <ImageButton
             android:id="@+id/btnPlayPause"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:layout_gravity="center"
+            android:background="@android:color/transparent"
             android:src="@android:drawable/ic_media_play"
-            android:background="#88000000"
-            android:tint="#FFFFFF"
-            android:padding="12dp" />
+            app:tint="#80FFFFFF" />
 
         <TextView
             android:id="@+id/tvDuration"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="8dp"
-            android:text="0:00 / 0:00"
-            android:textColor="#FFFFFF"
-            android:textSize="11sp"
-            android:background="#88000000"
-            android:padding="4dp" />
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:background="#80000000"
+            android:paddingHorizontal="8dp"
+            android:text="00:00 / 00:00"
+            android:textColor="@color/white"
+            android:textSize="12sp" />
     </FrameLayout>
 
-    <!-- TIMELINE -->
-    <FrameLayout
+    <!-- Editor Controls (Bottom Half) -->
+    <LinearLayout
+        android:id="@+id/editorControls"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="#0E0E1C">
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#0E0E1C"
+        android:orientation="vertical">
 
+        <!-- Info Bar -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:paddingHorizontal="16dp">
+
+            <TextView
+                android:id="@+id/tvClipInfo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:text="No clip selected"
+                android:textColor="#AAAAAA"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvClipCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="Clips: 0"
+                android:textColor="#6C63FF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </RelativeLayout>
+
+        <!-- Custom Timeline View -->
+        <!-- Note: This must match the package of your EditorActivity.kt -->
+        <com.vexo.app.ui.VTimeline
+            android:id="@+id/timelineView"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:background="#0A0A0F" />
+
+        <!-- Tool Tabs (Horizontal Scroll) -->
         <HorizontalScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="56dp"
             android:scrollbars="none">
 
-            <com.vexo.app.editor.TimelineView
-                android:id="@+id/timelineView"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:minWidth="600dp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="8dp">
+
+                <Button id="@+id/btnAddClip" style="@style/EditorToolButton" android:text="Add" />
+                <Button id="@+id/btnSplit" style="@style/EditorToolButton" android:text="Split" />
+                <Button id="@+id/btnDelete" style="@style/EditorToolButton" android:text="Delete" />
+                <Button id="@+id/btnSpeed" style="@style/EditorToolButton" android:text="Speed" />
+                <Button id="@+id/btnVolume" style="@style/EditorToolButton" android:text="Volume" />
+                <Button id="@+id/btnMoveLeft" style="@style/EditorToolButton" android:text="&lt; Move" />
+                <Button id="@+id/btnMoveRight" style="@style/EditorToolButton" android:text="Move &gt;" />
+            </LinearLayout>
         </HorizontalScrollView>
-    </FrameLayout>
 
-    <!-- CLIP INFO BAR -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="32dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:background="#12121F">
+        <!-- Effects/Filters Containers (Hidden until needed) -->
+        <HorizontalScrollView
+            android:id="@+id/filterButtonsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#151525"
+            android:scrollbars="none"
+            android:visibility="visible">
+            <!-- Populated via FilterUtils.kt -->
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="match_parent" android:orientation="horizontal" />
+        </HorizontalScrollView>
 
-        <TextView
-            android:id="@+id/tvClipInfo"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Tap a clip to select"
-            android:textColor="#AAAAAA"
-            android:textSize="11sp" />
+        <HorizontalScrollView
+            android:id="@+id/effectButtonsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="#151525"
+            android:scrollbars="none"
+            android:visibility="gone">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="match_parent" android:orientation="horizontal" />
+        </HorizontalScrollView>
 
-        <TextView
-            android:id="@+id/tvClipCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0 clips"
-            android:textColor="#6C63FF"
-            android:textSize="11sp" />
     </LinearLayout>
 
-    <!-- EDIT TOOLS -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:scrollbars="none"
-        android:background="#0A0A0F">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp">
-
-            <Button
-                android:id="@+id/btnSplit"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="✂ Split"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:backgroundTint="#1A1A2E"
-                android:layout_marginEnd="6dp" />
-
-            <Button
-                android:id="@+id/btnDelete"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="🗑 Delete"
-                android:textColor="#FF6584"
-                android:textSize="12sp"
-                android:backgroundTint="#1A1A2E"
-                android:layout_marginEnd="6dp" />
-
-            <Button
-                android:id="@+id/btnSpeed"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="⏩ Speed"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:backgroundTint="#1A1A2E"
-                android:layout_marginEnd="6dp" />
-
-            <Button
-                android:id="@+id/btnVolume"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="🔊 Vol"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:backgroundTint="#1A1A2E"
-                android:layout_marginEnd="6dp" />
-
-            <Button
-                android:id="@+id/btnMute"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="🔇 Mute"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:backgroundTint="#1A1A2E"
-                android:layout_marginEnd="6dp" />
-
-            <Button
-                android:id="@+id/btnAddClip"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="➕ Add"
-                android:textColor="#43E97B"
-                android:textSize="12sp"
-                android:backgroundTint="#1A1A2E"
-                android:layout_marginEnd="6dp" />
-
-            <Button
-                android:id="@+id/btnMoveLeft"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="◀ Move"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:backgroundTint="#1A1A2E"
-                android:layout_marginEnd="6dp" />
-
-            <Button
-                android:id="@+id/btnMoveRight"
-                android:layout_width="wrap_content"
-                android:layout_height="38dp"
-                android:text="Move ▶"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:backgroundTint="#1A1A2E" />
-        </LinearLayout>
-    </HorizontalScrollView>
-
-    <!-- FILTERS / EFFECTS -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="3"
-        android:fillViewport="true">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="12dp">
-
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="✨ Filters" android:textColor="#888888" android:textSize="11sp"
-                android:paddingStart="12dp" android:paddingTop="8dp" android:paddingBottom="4dp"/>
-            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
-                <LinearLayout android:id="@+id/filterButtonsContainer"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:padding="6dp"/>
-            </HorizontalScrollView>
-
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="⚡ Effects" android:textColor="#888888" android:textSize="11sp"
-                android:paddingStart="12dp" android:paddingTop="6dp" android:paddingBottom="4dp"/>
-            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
-                <LinearLayout android:id="@+id/effectButtonsContainer"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:padding="6dp"/>
-            </HorizontalScrollView>
-
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="🎬 Animations" android:textColor="#888888" android:textSize="11sp"
-                android:paddingStart="12dp" android:paddingTop="6dp" android:paddingBottom="4dp"/>
-            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
-                <LinearLayout android:id="@+id/animationButtonsContainer"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:padding="6dp"/>
-            </HorizontalScrollView>
-
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="🎥 Video FX" android:textColor="#888888" android:textSize="11sp"
-                android:paddingStart="12dp" android:paddingTop="6dp" android:paddingBottom="4dp"/>
-            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
-                <LinearLayout android:id="@+id/videoEffectButtonsContainer"
-                    android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:orientation="horizontal" android:padding="6dp"/>
-            </HorizontalScrollView>
-
-        </LinearLayout>
-    </ScrollView>
-
-</LinearLayout>
+</RelativeLayout>

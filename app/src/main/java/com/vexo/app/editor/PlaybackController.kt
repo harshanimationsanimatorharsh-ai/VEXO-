@@ -49,13 +49,14 @@ class PlaybackController(private val context: Context) {
         var offset = 0L
         for (i in state.clips.indices) {
             val clip = state.clips[i]
-            val end = offset + clip.trimmedDurationMs
-            if (positionMs <= end) {
-                val posInClip = (positionMs - offset).coerceIn(0L, clip.trimmedDurationMs)
+            val clipEnd: Long = offset + clip.trimmedDurationMs
+            if (positionMs <= clipEnd) {
+                val diff: Long = positionMs - offset
+                val posInClip: Long = if (diff < 0L) 0L else if (diff > clip.trimmedDurationMs) clip.trimmedDurationMs else diff
                 p.seekTo(i, clip.trimStartMs + posInClip)
                 return
             }
-            offset = end
+            offset = clipEnd
         }
         if (state.clips.isNotEmpty()) {
             val last = state.clips.last()
@@ -70,10 +71,11 @@ class PlaybackController(private val context: Context) {
         for (i in state.clips.indices) {
             val clip = state.clips[i]
             if (i == idx) {
-                val posInClip = (p.currentPosition - clip.trimStartMs).coerceAtLeast(0L)
+                val diff: Long = p.currentPosition - clip.trimStartMs
+                val posInClip: Long = if (diff < 0L) 0L else diff
                 return offset + posInClip
             }
-            offset += clip.trimmedDurationMs
+            offset = offset + clip.trimmedDurationMs
         }
         return offset
     }

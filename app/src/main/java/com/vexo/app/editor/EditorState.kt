@@ -1,25 +1,33 @@
 package com.vexo.app.editor
 
-data class EditorState(
+class EditorState(
     val clips: List<Clip> = emptyList()
 ) {
     val totalDurationMs: Long
         get() {
             var total = 0L
-            clips.forEach { total += it.trimmedDurationMs }
+            for (clip in clips) {
+                total = total + clip.trimmedDurationMs
+            }
             return total
         }
 
     fun withClips(newClips: List<Clip>): EditorState {
-        val ordered = newClips.mapIndexed { i, c -> c.also { it.order = i } }
-        return copy(clips = ordered)
+        for (i in newClips.indices) {
+            newClips[i].order = i
+        }
+        return EditorState(newClips)
+    }
+
+    fun copy(clips: List<Clip> = this.clips): EditorState {
+        return EditorState(clips)
     }
 
     fun clipStartOffsetMs(clipId: String): Long {
         var offset = 0L
         for (clip in clips) {
             if (clip.id == clipId) return offset
-            offset += clip.trimmedDurationMs
+            offset = offset + clip.trimmedDurationMs
         }
         return 0L
     }
@@ -33,6 +41,7 @@ data class EditorState(
             }
             offset = end
         }
-        return clips.lastOrNull()?.let { Pair(it, it.trimmedDurationMs) }
+        val last = clips.lastOrNull() ?: return null
+        return Pair(last, last.trimmedDurationMs)
     }
 }

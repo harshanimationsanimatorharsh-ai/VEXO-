@@ -8,7 +8,6 @@ class UndoRedoManager(private val maxHistory: Int = 50) {
     val canUndo: Boolean get() = undoStack.isNotEmpty()
     val canRedo: Boolean get() = redoStack.isNotEmpty()
 
-    /** Call before applying any edit — saves current state */
     fun push(state: EditorState) {
         undoStack.addLast(state)
         if (undoStack.size > maxHistory) undoStack.removeFirst()

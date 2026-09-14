@@ -4,6 +4,8 @@ import android.content.ContentValues
 import android.content.Context
 import android.os.Build
 import android.os.Environment
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import androidx.media3.common.MediaItem
 import androidx.media3.transformer.Composition
@@ -11,6 +13,7 @@ import androidx.media3.transformer.EditedMediaItem
 import androidx.media3.transformer.EditedMediaItemSequence
 import androidx.media3.transformer.ExportException
 import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.ProgressHolder
 import androidx.media3.transformer.Transformer
 import java.io.File
 
@@ -23,6 +26,7 @@ class ExportController(private val context: Context) {
     }
 
     private var transformer: Transformer? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     fun export(state: EditorState, callback: ExportCallback) {
         if (state.clips.isEmpty()) {
@@ -30,11 +34,10 @@ class ExportController(private val context: Context) {
             return
         }
 
-        // Build output file
         val outFile = createOutputFile()
 
-        // Build EditedMediaItems with trim
-        val editedItems = state.clips.map { clip ->
+        val editedItems = ArrayList<EditedMediaItem>()
+        for (clip in state.clips) {
             val mediaItem = MediaItem.Builder()
                 .setUri(clip.uri)
                 .setClippingConfiguration(
@@ -44,48 +47,45 @@ class ExportController(private val context: Context) {
                         .build()
                 )
                 .build()
-
-            EditedMediaItem.Builder(mediaItem)
+            val editedItem = EditedMediaItem.Builder(mediaItem)
                 .setRemoveAudio(clip.volume == 0f)
                 .build()
+            editedItems.add(editedItem)
         }
 
-        val sequence  = EditedMediaItemSequence(editedItems)
+        val sequence = EditedMediaItemSequence(editedItems)
         val composition = Composition.Builder(listOf(sequence)).build()
 
         transformer = Transformer.Builder(context)
             .addListener(object : Transformer.Listener {
                 override fun onCompleted(comp: Composition, result: ExportResult) {
                     saveToMediaStore(outFile)
-                    callback.onSuccess(outFile.absolutePath)
+                    handler.post { callback.onSuccess(outFile.absolutePath) }
                 }
-                override fun onError(comp: Composition, result: ExportResult, ex: ExportException) {
-                    callback.onFailure(ex.message ?: "Export failed")
+                override fun onError(
+                    comp: Composition,
+                    result: ExportResult,
+                    ex: ExportException
+                ) {
+                    handler.post { callback.onFailure(ex.message ?: "Export failed") }
                 }
             })
             .build()
 
         transformer?.start(composition, outFile.absolutePath)
-
-        // Poll progress
         pollProgress(callback)
     }
 
     private fun pollProgress(callback: ExportCallback) {
-        val handler = android.os.Handler(android.os.Looper.getMainLooper())
-        handler.post(object : Runnable {
-            override fun run() {
-                val t = transformer ?: return
-                val progress = androidx.media3.transformer.ProgressHolder()
-                val state = t.getProgress(progress)
-                if (state == Transformer.PROGRESS_STATE_AVAILABLE) {
-                    callback.onProgress(progress.progress)
-                }
-                if (state != Transformer.PROGRESS_STATE_NOT_STARTED) {
-                    handler.postDelayed(this, 200)
-                }
-            }
-        })
+        val t = transformer ?: return
+        val progressHolder = ProgressHolder()
+        val progressState = t.getProgress(progressHolder)
+        if (progressState == Transformer.PROGRESS_STATE_AVAILABLE) {
+            callback.onProgress(progressHolder.progress)
+        }
+        if (progressState != Transformer.PROGRESS_STATE_NOT_STARTED) {
+            handler.postDelayed({ pollProgress(callback) }, 300)
+        }
     }
 
     private fun createOutputFile(): File {
@@ -96,21 +96,23 @@ class ExportController(private val context: Context) {
     }
 
     private fun saveToMediaStore(file: File) {
-        val values = ContentValues().apply {
-            put(MediaStore.Video.Media.DISPLAY_NAME, file.name)
-            put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
-            put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/VEXO")
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                put(MediaStore.Video.Media.IS_PENDING, 0)
-            }
-        }
         try {
+            val values = ContentValues().apply {
+                put(MediaStore.Video.Media.DISPLAY_NAME, file.name)
+                put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    put(
+                        MediaStore.Video.Media.RELATIVE_PATH,
+                        Environment.DIRECTORY_MOVIES + "/VEXO"
+                    )
+                }
+            }
             val uri = context.contentResolver.insert(
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values
             )
             uri?.let { dest ->
                 context.contentResolver.openOutputStream(dest)?.use { out ->
-                    file.inputStream().use { it.copyTo(out) }
+                    file.inputStream().use { input -> input.copyTo(out) }
                 }
             }
         } catch (e: Exception) {

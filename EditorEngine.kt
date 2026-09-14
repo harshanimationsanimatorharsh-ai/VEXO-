@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
@@ -17,16 +18,20 @@ import androidx.lifecycle.ViewModel
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.transformer.*
+import androidx.media3.transformer.Composition
+import androidx.media3.transformer.EditedMediaItem
+import androidx.media3.transformer.EditedMediaItemSequence
+import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.ProgressHolder
+import androidx.media3.transformer.Transformer
 import androidx.media3.ui.PlayerView
-import android.provider.MediaStore
 import java.io.File
 import java.util.UUID
 
-// ══════════════════════════════════════════════
-//  CLIP
-// ══════════════════════════════════════════════
-
+// ════════════════════════════
+// CLIP
+// ════════════════════════════
 class Clip(
     val id: String = UUID.randomUUID().toString(),
     val uri: Uri,
@@ -43,38 +48,37 @@ class Clip(
             return if (d > 0L) d else 0L
         }
 
-    fun duplicate(
-        newId: String = UUID.randomUUID().toString(),
-        newTrimStart: Long = trimStartMs,
-        newTrimEnd: Long = trimEndMs,
-        newVolume: Float = volume,
-        newSpeed: Float = speed
+    fun makeClone(
+        newId: String = this.id,
+        newTrimStart: Long = this.trimStartMs,
+        newTrimEnd: Long = this.trimEndMs,
+        newVolume: Float = this.volume,
+        newSpeed: Float = this.speed
     ): Clip {
         return Clip(
             id = newId,
-            uri = uri,
-            sourceDurationMs = sourceDurationMs,
+            uri = this.uri,
+            sourceDurationMs = this.sourceDurationMs,
             trimStartMs = newTrimStart,
             trimEndMs = newTrimEnd,
             volume = newVolume,
             speed = newSpeed,
-            order = order
+            order = this.order
         )
     }
 }
 
-// ══════════════════════════════════════════════
-//  EDITOR STATE
-// ══════════════════════════════════════════════
-
+// ════════════════════════════
+// EDITOR STATE
+// ════════════════════════════
 class EditorState(
     val clips: List<Clip> = emptyList()
 ) {
     val totalDurationMs: Long
         get() {
-            var total = 0L
-            for (c in clips) total += c.trimmedDurationMs
-            return total
+            var t = 0L
+            for (c in clips) t += c.trimmedDurationMs
+            return t
         }
 
     fun withClips(newClips: List<Clip>): EditorState {
@@ -92,10 +96,9 @@ class EditorState(
     }
 }
 
-// ══════════════════════════════════════════════
-//  UNDO REDO MANAGER
-// ══════════════════════════════════════════════
-
+// ════════════════════════════
+// UNDO REDO
+// ════════════════════════════
 class UndoRedoManager {
     private val undoStack = ArrayDeque<EditorState>()
     private val redoStack = ArrayDeque<EditorState>()
@@ -124,16 +127,14 @@ class UndoRedoManager {
     }
 }
 
-// ══════════════════════════════════════════════
-//  EDITOR VIEW MODEL
-// ══════════════════════════════════════════════
-
+// ════════════════════════════
+// VIEW MODEL
+// ════════════════════════════
 class EditorViewModel : ViewModel() {
 
     private val undoRedo = UndoRedoManager()
     private val _state = MutableLiveData<EditorState>(EditorState())
     val state: LiveData<EditorState> = _state
-
     private val _selectedClipId = MutableLiveData<String?>(null)
     val selectedClipId: LiveData<String?> = _selectedClipId
 
@@ -142,23 +143,23 @@ class EditorViewModel : ViewModel() {
 
     private fun current(): EditorState = _state.value ?: EditorState()
 
-    private fun commit(newState: EditorState) {
+    private fun commit(s: EditorState) {
         undoRedo.push(current())
-        _state.value = newState
+        _state.value = s
     }
 
     fun addClips(uris: List<Uri>, durations: Map<Uri, Long>) {
         val list = current().clips.toMutableList()
         for (uri in uris) {
             val dur = durations[uri] ?: 0L
-            if (dur > 0L) {
-                list.add(Clip(uri = uri, sourceDurationMs = dur))
-            }
+            if (dur > 0L) list.add(Clip(uri = uri, sourceDurationMs = dur))
         }
         commit(current().withClips(list))
     }
 
-    fun selectClip(id: String?) { _selectedClipId.value = id }
+    fun selectClip(id: String?) {
+        _selectedClipId.value = id
+    }
 
     fun trimClip(clipId: String, newStart: Long, newEnd: Long) {
         val list = ArrayList<Clip>()
@@ -166,7 +167,7 @@ class EditorViewModel : ViewModel() {
             if (c.id == clipId) {
                 val s = newStart.coerceIn(0L, c.sourceDurationMs)
                 val e = newEnd.coerceIn(s + 100L, c.sourceDurationMs)
-                list.add(c.duplicate(newId = c.id, newTrimStart = s, newTrimEnd = e))
+                list.add(c.makeClone(newTrimStart = s, newTrimEnd = e))
             } else list.add(c)
         }
         commit(current().withClips(list))
@@ -180,8 +181,8 @@ class EditorViewModel : ViewModel() {
         val clip = list[idx]
         val abs = clip.trimStartMs + splitAtMs
         if (abs <= clip.trimStartMs || abs >= clip.trimEndMs) return
-        val left  = clip.duplicate(newTrimEnd = abs)
-        val right = clip.duplicate(newId = UUID.randomUUID().toString(), newTrimStart = abs)
+        val left  = clip.makeClone(newTrimEnd = abs)
+        val right = clip.makeClone(newId = UUID.randomUUID().toString(), newTrimStart = abs)
         list.removeAt(idx)
         list.add(idx, left)
         list.add(idx + 1, right)
@@ -205,7 +206,7 @@ class EditorViewModel : ViewModel() {
     fun setVolume(clipId: String, vol: Float) {
         val list = ArrayList<Clip>()
         for (c in current().clips) {
-            list.add(if (c.id == clipId) c.duplicate(newId = c.id, newVolume = vol) else c)
+            list.add(if (c.id == clipId) c.makeClone(newVolume = vol) else c)
         }
         commit(current().withClips(list))
     }
@@ -223,18 +224,17 @@ class EditorViewModel : ViewModel() {
     }
 }
 
-// ══════════════════════════════════════════════
-//  PLAYBACK CONTROLLER
-// ══════════════════════════════════════════════
-
-class PlaybackController(private val context: Context) {
+// ════════════════════════════
+// PLAYBACK CONTROLLER
+// ════════════════════════════
+class PlaybackController(private val ctx: Context) {
 
     var player: ExoPlayer? = null
         private set
 
     fun init(playerView: PlayerView) {
         release()
-        val p = ExoPlayer.Builder(context).build()
+        val p = ExoPlayer.Builder(ctx).build()
         playerView.player = p
         p.playWhenReady = false
         player = p
@@ -245,16 +245,16 @@ class PlaybackController(private val context: Context) {
         p.stop()
         p.clearMediaItems()
         for (clip in state.clips) {
-            val item = MediaItem.Builder()
-                .setUri(clip.uri)
-                .setClippingConfiguration(
-                    MediaItem.ClippingConfiguration.Builder()
-                        .setStartPositionMs(clip.trimStartMs)
-                        .setEndPositionMs(clip.trimEndMs)
-                        .build()
-                )
-                .build()
-            p.addMediaItem(item)
+            p.addMediaItem(
+                MediaItem.Builder()
+                    .setUri(clip.uri)
+                    .setClippingConfiguration(
+                        MediaItem.ClippingConfiguration.Builder()
+                            .setStartPositionMs(clip.trimStartMs)
+                            .setEndPositionMs(clip.trimEndMs)
+                            .build()
+                    ).build()
+            )
         }
         p.prepare()
         p.playWhenReady = playWhenReady
@@ -289,8 +289,7 @@ class PlaybackController(private val context: Context) {
         for (i in state.clips.indices) {
             val clip = state.clips[i]
             if (i == idx) {
-                val diff = (p.currentPosition - clip.trimStartMs).coerceAtLeast(0L)
-                return offset + diff
+                return offset + (p.currentPosition - clip.trimStartMs).coerceAtLeast(0L)
             }
             offset += clip.trimmedDurationMs
         }
@@ -305,11 +304,10 @@ class PlaybackController(private val context: Context) {
     }
 }
 
-// ══════════════════════════════════════════════
-//  EXPORT CONTROLLER
-// ══════════════════════════════════════════════
-
-class ExportController(private val context: Context) {
+// ════════════════════════════
+// EXPORT CONTROLLER
+// ════════════════════════════
+class ExportController(private val ctx: Context) {
 
     interface ExportCallback {
         fun onProgress(percent: Int)
@@ -320,11 +318,11 @@ class ExportController(private val context: Context) {
     private var transformer: Transformer? = null
     private val handler = Handler(Looper.getMainLooper())
 
-    fun export(state: EditorState, callback: ExportCallback) {
-        if (state.clips.isEmpty()) { callback.onFailure("No clips"); return }
+    fun export(state: EditorState, cb: ExportCallback) {
+        if (state.clips.isEmpty()) { cb.onFailure("No clips"); return }
 
-        val dir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
-            ?: File(context.filesDir, "Movies")
+        val dir = ctx.getExternalFilesDir(Environment.DIRECTORY_MOVIES)
+            ?: File(ctx.filesDir, "Movies")
         if (!dir.exists()) dir.mkdirs()
         val outFile = File(dir, "VEXO_${System.currentTimeMillis()}.mp4")
 
@@ -337,28 +335,26 @@ class ExportController(private val context: Context) {
                         .setStartPositionMs(clip.trimStartMs)
                         .setEndPositionMs(clip.trimEndMs)
                         .build()
-                )
-                .build()
+                ).build()
             items.add(EditedMediaItem.Builder(mi).setRemoveAudio(clip.volume == 0f).build())
         }
 
         val seq  = EditedMediaItemSequence(items)
         val comp = Composition.Builder(listOf(seq)).build()
 
-        transformer = Transformer.Builder(context)
+        transformer = Transformer.Builder(ctx)
             .addListener(object : Transformer.Listener {
-                override fun onCompleted(c: Composition, result: ExportResult) {
+                override fun onCompleted(c: Composition, r: ExportResult) {
                     saveToGallery(outFile)
-                    handler.post { callback.onSuccess(outFile.absolutePath) }
+                    handler.post { cb.onSuccess(outFile.absolutePath) }
                 }
-                override fun onError(c: Composition, result: ExportResult, ex: ExportException) {
-                    handler.post { callback.onFailure(ex.message ?: "Export error") }
+                override fun onError(c: Composition, r: ExportResult, ex: ExportException) {
+                    handler.post { cb.onFailure(ex.message ?: "Export error") }
                 }
-            })
-            .build()
+            }).build()
 
         transformer?.start(comp, outFile.absolutePath)
-        pollProgress(callback)
+        pollProgress(cb)
     }
 
     private fun pollProgress(cb: ExportCallback) {
@@ -377,12 +373,14 @@ class ExportController(private val context: Context) {
                 put(MediaStore.Video.Media.DISPLAY_NAME, file.name)
                 put(MediaStore.Video.Media.MIME_TYPE, "video/mp4")
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/VEXO")
+                    put(MediaStore.Video.Media.RELATIVE_PATH,
+                        Environment.DIRECTORY_MOVIES + "/VEXO")
                 }
             }
-            val uri = context.contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cv)
+            val uri = ctx.contentResolver.insert(
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cv)
             uri?.let { dest ->
-                context.contentResolver.openOutputStream(dest)?.use { out ->
+                ctx.contentResolver.openOutputStream(dest)?.use { out ->
                     file.inputStream().use { it.copyTo(out) }
                 }
             }
@@ -392,10 +390,9 @@ class ExportController(private val context: Context) {
     fun cancel() { transformer?.cancel(); transformer = null }
 }
 
-// ══════════════════════════════════════════════
-//  TIMELINE VIEW
-// ══════════════════════════════════════════════
-
+// ════════════════════════════
+// TIMELINE VIEW
+// ════════════════════════════
 class TimelineView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null
 ) : View(context, attrs) {
@@ -418,13 +415,17 @@ class TimelineView @JvmOverloads constructor(
         return width.toFloat() / totalMs.toFloat()
     }
 
-    private val clipPaint  = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
-    private val selPaint   = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE; strokeWidth = 4f; color = Color.WHITE }
-    private val phPaint    = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.RED; strokeWidth = 3f }
-    private val txtPaint   = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE; textSize = 26f }
-    private val handlePaint= Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL; color = Color.parseColor("#BB000000") }
+    private val clipPaint   = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
+    private val selPaint    = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE; strokeWidth = 4f; color = Color.WHITE }
+    private val phPaint     = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.RED; strokeWidth = 3f; style = Paint.Style.FILL_AND_STROKE }
+    private val txtPaint    = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE; textSize = 26f }
+    private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL; color = Color.parseColor("#BB000000") }
 
-    private val colors = listOf(
+    private val clipColors = listOf(
         Color.parseColor("#6C63FF"), Color.parseColor("#43E97B"),
         Color.parseColor("#FF6584"), Color.parseColor("#FFD700"),
         Color.parseColor("#00B4D8")
@@ -446,6 +447,7 @@ class TimelineView @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (width == 0 || height == 0) return
         val p = ppm()
         val h = height.toFloat()
         val ch = h * 0.65f
@@ -456,7 +458,7 @@ class TimelineView @JvmOverloads constructor(
             val c = clips[i]
             val cw = c.trimmedDurationMs.toFloat() * p
             if (cw < 1f) { ox += cw; continue }
-            clipPaint.color = colors[i % colors.size]
+            clipPaint.color = clipColors[i % clipColors.size]
             val r = RectF(ox, ct, ox + cw, ct + ch)
             canvas.drawRoundRect(r, 10f, 10f, clipPaint)
             if (c.id == selectedId) {
@@ -466,19 +468,25 @@ class TimelineView @JvmOverloads constructor(
             }
             val lbl = "Clip ${i + 1}"
             val tw = txtPaint.measureText(lbl)
-            if (tw < cw - 8f) canvas.drawText(lbl, ox + (cw - tw) / 2f, ct + ch / 2f + 10f, txtPaint)
+            if (tw < cw - 8f) {
+                canvas.drawText(lbl, ox + (cw - tw) / 2f, ct + ch / 2f + 10f, txtPaint)
+            }
             ox += cw
         }
 
         val px = playheadMs.toFloat() * p
         canvas.drawLine(px, 0f, px, h, phPaint)
-        val tri = Path(); tri.moveTo(px - 12f, 0f); tri.lineTo(px + 12f, 0f); tri.lineTo(px, 24f); tri.close()
+        val tri = Path()
+        tri.moveTo(px - 12f, 0f)
+        tri.lineTo(px + 12f, 0f)
+        tri.lineTo(px, 24f)
+        tri.close()
         canvas.drawPath(tri, phPaint)
     }
 
     override fun onTouchEvent(e: MotionEvent): Boolean {
-        val x = e.x
-        val p = ppm()
+        val x  = e.x
+        val p  = ppm()
         val ms = (x / p).toLong().coerceIn(0L, totalMs)
 
         when (e.action) {
@@ -488,12 +496,15 @@ class TimelineView @JvmOverloads constructor(
                 if (sel != null) {
                     var off = 0L
                     var sc: Clip? = null
-                    for (c in clips) { if (c.id == sel) { sc = c; break }; off += c.trimmedDurationMs }
+                    for (c in clips) {
+                        if (c.id == sel) { sc = c; break }
+                        off += c.trimmedDurationMs
+                    }
                     if (sc != null) {
                         val sp = off.toFloat() * p
                         val ep = sp + sc.trimmedDurationMs.toFloat() * p
-                        if (x in sp..(sp + 30f)) { drag = Drag.LEFT; dragId = sel; return true }
-                        if (x in (ep - 30f)..ep)  { drag = Drag.RIGHT; dragId = sel; return true }
+                        if (x >= sp && x <= sp + 30f) { drag = Drag.LEFT;  dragId = sel; return true }
+                        if (x >= ep - 30f && x <= ep) { drag = Drag.RIGHT; dragId = sel; return true }
                     }
                 }
                 val px = playheadMs.toFloat() * p
@@ -506,11 +517,18 @@ class TimelineView @JvmOverloads constructor(
                 }
             }
             MotionEvent.ACTION_MOVE -> when (drag) {
-                Drag.HEAD  -> { playheadMs = ms; listener?.onPlayheadSeeked(ms); invalidate() }
-                Drag.LEFT  -> {
+                Drag.HEAD -> {
+                    playheadMs = ms
+                    listener?.onPlayheadSeeked(ms)
+                    invalidate()
+                }
+                Drag.LEFT -> {
                     val cid = dragId ?: return false
                     var off = 0L; var clip: Clip? = null
-                    for (c in clips) { if (c.id == cid) { clip = c; break }; off += c.trimmedDurationMs }
+                    for (c in clips) {
+                        if (c.id == cid) { clip = c; break }
+                        off += c.trimmedDurationMs
+                    }
                     clip ?: return false
                     val ns = (clip.trimStartMs + (ms - off)).coerceIn(0L, clip.trimEndMs - 500L)
                     listener?.onTrimChanged(cid, ns, clip.trimEndMs)
@@ -518,9 +536,13 @@ class TimelineView @JvmOverloads constructor(
                 Drag.RIGHT -> {
                     val cid = dragId ?: return false
                     var off = 0L; var clip: Clip? = null
-                    for (c in clips) { if (c.id == cid) { clip = c; break }; off += c.trimmedDurationMs }
+                    for (c in clips) {
+                        if (c.id == cid) { clip = c; break }
+                        off += c.trimmedDurationMs
+                    }
                     clip ?: return false
-                    val ne = (clip.trimStartMs + (ms - off)).coerceIn(clip.trimStartMs + 500L, clip.sourceDurationMs)
+                    val ne = (clip.trimStartMs + (ms - off)).coerceIn(
+                        clip.trimStartMs + 500L, clip.sourceDurationMs)
                     listener?.onTrimChanged(cid, clip.trimStartMs, ne)
                 }
                 else -> {}

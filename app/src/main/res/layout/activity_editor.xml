@@ -4,17 +4,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bg_editor">
+    android:background="#080810">
 
-    <!-- ── TOP TOOLBAR ── -->
+    <!-- TOOLBAR -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="56dp"
+        android:layout_height="52dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:background="@color/bg_primary">
+        android:background="#0A0A0F">
 
         <ImageButton
             android:id="@+id/btnBack"
@@ -28,7 +28,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="VEXO Editor"
+            android:text="VEXO"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold"
@@ -36,371 +36,259 @@
 
         <ImageButton
             android:id="@+id/btnUndo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_revert"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="#FFFFFF" />
+            android:tint="#AAAAAA" />
 
         <ImageButton
             android:id="@+id/btnRedo"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_send"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="#FFFFFF" />
+            android:tint="#AAAAAA"
+            android:layout_marginStart="4dp" />
 
         <Button
             android:id="@+id/btnExport"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
+            android:layout_height="34dp"
             android:text="Export"
             android:textColor="#FFFFFF"
-            android:textSize="13sp"
-            android:backgroundTint="@color/vexo_purple"
+            android:textSize="12sp"
+            android:backgroundTint="#6C63FF"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
-    <!-- ── VIDEO PREVIEW ── -->
+    <!-- VIDEO PREVIEW -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="3">
+        android:layout_weight="4"
+        android:background="#000000">
 
         <androidx.media3.ui.PlayerView
             android:id="@+id/playerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:use_controller="true"
+            app:use_controller="false"
             app:resize_mode="fit" />
 
-        <!-- Colour-filter overlay — colorFilter applied here in Kotlin -->
-        <ImageView
-            android:id="@+id/filterOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            android:alpha="0.0" />
+        <ImageButton
+            android:id="@+id/btnPlayPause"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_media_play"
+            android:background="#88000000"
+            android:tint="#FFFFFF"
+            android:padding="12dp" />
+
+        <TextView
+            android:id="@+id/tvDuration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp"
+            android:text="0:00 / 0:00"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
+            android:background="#88000000"
+            android:padding="4dp" />
     </FrameLayout>
 
-    <!-- ── SCROLLABLE BOTTOM PANEL ── -->
+    <!-- TIMELINE -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="#0E0E1C">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scrollbars="none">
+
+            <com.vexo.app.editor.TimelineView
+                android:id="@+id/timelineView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:minWidth="600dp" />
+        </HorizontalScrollView>
+    </FrameLayout>
+
+    <!-- CLIP INFO BAR -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:background="#12121F">
+
+        <TextView
+            android:id="@+id/tvClipInfo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Tap a clip to select"
+            android:textColor="#AAAAAA"
+            android:textSize="11sp" />
+
+        <TextView
+            android:id="@+id/tvClipCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 clips"
+            android:textColor="#6C63FF"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <!-- EDIT TOOLS -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:scrollbars="none"
+        android:background="#0A0A0F">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <Button
+                android:id="@+id/btnSplit"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="✂ Split"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#1A1A2E"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnDelete"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="🗑 Delete"
+                android:textColor="#FF6584"
+                android:textSize="12sp"
+                android:backgroundTint="#1A1A2E"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnSpeed"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="⏩ Speed"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#1A1A2E"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnVolume"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="🔊 Vol"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#1A1A2E"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnMute"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="🔇 Mute"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#1A1A2E"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnAddClip"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="➕ Add"
+                android:textColor="#43E97B"
+                android:textSize="12sp"
+                android:backgroundTint="#1A1A2E"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnMoveLeft"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="◀ Move"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#1A1A2E"
+                android:layout_marginEnd="6dp" />
+
+            <Button
+                android:id="@+id/btnMoveRight"
+                android:layout_width="wrap_content"
+                android:layout_height="38dp"
+                android:text="Move ▶"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:backgroundTint="#1A1A2E" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- FILTERS / EFFECTS -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="4"
+        android:layout_weight="3"
         android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="16dp">
+            android:paddingBottom="12dp">
 
-            <!-- EDIT TOOLS -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="✂  Edit Tools"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="4dp" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="8dp">
-
-                    <Button
-                        android:id="@+id/btnTrim"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Trim"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/bg_button"
-                        android:layout_marginEnd="6dp" />
-
-                    <Button
-                        android:id="@+id/btnSplit"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Split"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/bg_button"
-                        android:layout_marginEnd="6dp" />
-
-                    <Button
-                        android:id="@+id/btnSpeed"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Speed"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/bg_button"
-                        android:layout_marginEnd="6dp" />
-
-                    <Button
-                        android:id="@+id/btnVolume"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Volume"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/bg_button"
-                        android:layout_marginEnd="6dp" />
-
-                    <Button
-                        android:id="@+id/btnMute"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Mute"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/bg_button"
-                        android:layout_marginEnd="6dp" />
-
-                    <Button
-                        android:id="@+id/btnRotate"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Rotate"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/bg_button"
-                        android:layout_marginEnd="6dp" />
-
-                    <Button
-                        android:id="@+id/btnFlip"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Flip"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/bg_button"
-                        android:layout_marginEnd="6dp" />
-
-                    <Button
-                        android:id="@+id/btnDuplicate"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Duplicate"
-                        android:textColor="#FFFFFF"
-                        android:background="@drawable/bg_button"
-                        android:layout_marginEnd="6dp" />
-
-                    <Button
-                        android:id="@+id/btnDelete"
-                        style="@style/Widget.AppCompat.Button.Borderless"
-                        android:layout_width="wrap_content"
-                        android:layout_height="40dp"
-                        android:text="Delete"
-                        android:textColor="#FF6584"
-                        android:background="@drawable/bg_button" />
-                </LinearLayout>
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="✨ Filters" android:textColor="#888888" android:textSize="11sp"
+                android:paddingStart="12dp" android:paddingTop="8dp" android:paddingBottom="4dp"/>
+            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
+                <LinearLayout android:id="@+id/filterButtonsContainer"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:padding="6dp"/>
             </HorizontalScrollView>
 
-            <!-- ADJUST SLIDERS -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="🎨  Adjust"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="2dp" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp">
-
-                <TextView
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:text="Brightness"
-                    android:textColor="#CCCCCC"
-                    android:textSize="11sp" />
-
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/sliderBrightness"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:valueFrom="-100"
-                    android:valueTo="100"
-                    android:value="0"
-                    android:stepSize="1"
-                    app:thumbColor="@color/vexo_purple"
-                    app:trackColorActive="@color/vexo_purple"
-                    app:trackColorInactive="#444444" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp">
-
-                <TextView
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:text="Contrast"
-                    android:textColor="#CCCCCC"
-                    android:textSize="11sp" />
-
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/sliderContrast"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:valueFrom="0.5"
-                    android:valueTo="2.0"
-                    android:value="1.0"
-                    android:stepSize="0.1"
-                    app:thumbColor="@color/vexo_purple"
-                    app:trackColorActive="@color/vexo_purple"
-                    app:trackColorInactive="#444444" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:paddingStart="12dp"
-                android:paddingEnd="12dp">
-
-                <TextView
-                    android:layout_width="80dp"
-                    android:layout_height="wrap_content"
-                    android:text="Saturation"
-                    android:textColor="#CCCCCC"
-                    android:textSize="11sp" />
-
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/sliderSaturation"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:valueFrom="0.0"
-                    android:valueTo="2.0"
-                    android:value="1.0"
-                    android:stepSize="0.1"
-                    app:thumbColor="@color/vexo_purple"
-                    app:trackColorActive="@color/vexo_purple"
-                    app:trackColorInactive="#444444" />
-            </LinearLayout>
-
-            <!-- FILTERS -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="✨  Filters"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="4dp" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/filterButtonsContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="8dp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="⚡ Effects" android:textColor="#888888" android:textSize="11sp"
+                android:paddingStart="12dp" android:paddingTop="6dp" android:paddingBottom="4dp"/>
+            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
+                <LinearLayout android:id="@+id/effectButtonsContainer"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:padding="6dp"/>
             </HorizontalScrollView>
 
-            <!-- EFFECTS -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="⚡  Effects"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="4dp" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/effectButtonsContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="8dp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="🎬 Animations" android:textColor="#888888" android:textSize="11sp"
+                android:paddingStart="12dp" android:paddingTop="6dp" android:paddingBottom="4dp"/>
+            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
+                <LinearLayout android:id="@+id/animationButtonsContainer"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:padding="6dp"/>
             </HorizontalScrollView>
 
-            <!-- ANIMATIONS -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="🎬  Animations"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="4dp" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/animationButtonsContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="8dp" />
-            </HorizontalScrollView>
-
-            <!-- VIDEO EFFECTS -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="🎥  Video Effects"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp"
-                android:paddingStart="12dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="4dp" />
-
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:id="@+id/videoEffectButtonsContainer"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="8dp" />
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:text="🎥 Video FX" android:textColor="#888888" android:textSize="11sp"
+                android:paddingStart="12dp" android:paddingTop="6dp" android:paddingBottom="4dp"/>
+            <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
+                <LinearLayout android:id="@+id/videoEffectButtonsContainer"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    android:orientation="horizontal" android:padding="6dp"/>
             </HorizontalScrollView>
 
         </LinearLayout>
